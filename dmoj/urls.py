@@ -14,7 +14,7 @@ from django.views.generic import RedirectView
 
 from judge.feed import AtomBlogFeed, AtomCommentFeed, AtomProblemFeed, BlogFeed, CommentFeed, ProblemFeed
 from judge.sitemap import sitemaps
-from judge.views import TitledTemplateView, api, blog, comment, contests, language, license, mailgun, organization, \
+from judge.views import TitledTemplateView, api, blog, comment, contests, customtest, language, license, mailgun, organization, \
     preview, problem, problem_manage, ranked_submission, register, stats, status, submission, tag, tasks, ticket, \
     two_factor, user, widgets
 from judge.views.magazine import MagazinePage
@@ -116,6 +116,11 @@ urlpatterns = [
         path('/suggest', problem.ProblemSuggest.as_view(), name='problem_suggest'),
         path('/create', problem.ProblemCreate.as_view(), name='problem_create'),
         path('/import-polygon', problem.ProblemImportPolygon.as_view(), name='problem_import_polygon'),
+    ])),
+
+    path('customtest', include([
+        path('/', customtest.CustomTestView.as_view(), name='custom_test'),
+        path('/run', customtest.CustomTestRunView.as_view(), name='custom_test_run'),
     ])),
 
     path('problem/<str:problem>', include([

@@ -10,9 +10,25 @@
             "regex": "^/problem",
             "parent": null,
             "lft": 1,
-            "rght": 2,
+            "rght": 4,
             "tree_id": 1,
             "level": 0
+        }
+    },
+    {
+        "model": "judge.navigationbar",
+        "pk": 9,
+        "fields": {
+            "order": 9,
+            "key": "customtest",
+            "label": "Custom Test",
+            "path": "/customtest/",
+            "regex": "^/customtest/$",
+            "parent": 1,
+            "lft": 2,
+            "rght": 3,
+            "tree_id": 1,
+            "level": 1
         }
     },
     {
@@ -25,8 +41,8 @@
             "path": "/submissions/",
             "regex": "^/submi|^/src/",
             "parent": null,
-            "lft": 1,
-            "rght": 2,
+            "lft": 5,
+            "rght": 6,
             "tree_id": 2,
             "level": 0
         }
@@ -41,8 +57,8 @@
             "path": "/users/",
             "regex": "^/user",
             "parent": null,
-            "lft": 1,
-            "rght": 2,
+            "lft": 7,
+            "rght": 8,
             "tree_id": 3,
             "level": 0
         }
@@ -57,8 +73,8 @@
             "path": "/contests/",
             "regex": "^/contest",
             "parent": null,
-            "lft": 1,
-            "rght": 2,
+            "lft": 9,
+            "rght": 10,
             "tree_id": 4,
             "level": 0
         }
@@ -73,8 +89,8 @@
             "path": "/about/",
             "regex": "^/about/$",
             "parent": null,
-            "lft": 1,
-            "rght": 8,
+            "lft": 11,
+            "rght": 18,
             "tree_id": 5,
             "level": 0
         }
@@ -89,8 +105,8 @@
             "path": "/status/",
             "regex": "^/status/$|^/judge/",
             "parent": 5,
-            "lft": 2,
-            "rght": 3,
+            "lft": 12,
+            "rght": 13,
             "tree_id": 5,
             "level": 1
         }
@@ -105,8 +121,8 @@
             "path": "/custom_checkers/",
             "regex": "^/custom_checkers/$",
             "parent": 5,
-            "lft": 4,
-            "rght": 5,
+            "lft": 14,
+            "rght": 15,
             "tree_id": 5,
             "level": 1
         }
@@ -121,8 +137,8 @@
             "path": "https://github.com/VNOI-Admin/OJ",
             "regex": "^https://github.com/VNOI-Admin/OJ$",
             "parent": 5,
-            "lft": 6,
-            "rght": 7,
+            "lft": 16,
+            "rght": 17,
             "tree_id": 5,
             "level": 1
         }

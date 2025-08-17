@@ -1,0 +1,111 @@
+@use "vars" as *;
+
+#language-select2 {
+    &.select2-dropdown--below {
+        display: flex;
+        flex-direction: column;
+
+        #result-version-info {
+            border-top: 1px solid $color_primary50;
+            border-bottom: 0;
+            margin: 0px 1em;
+            color: $color_problem_submit_select2;
+            font-weight: 600;
+            padding: 0.2em 0;
+            text-align: right;
+        }
+    }
+}
+
+#content-right {
+    &.customtest {
+        max-width: unset;
+        padding-top: 0;
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-data {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+#content-left {
+    &.customtest {
+        flex: 5;
+    }
+}
+
+#problem_submit {
+    &.customtest {
+        display: flex;
+        flex-direction: row-reverse;
+    }
+
+    .submit-bar {
+        float: right;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+}
+
+textarea.customtest {
+    box-shadow: none !important;
+    border-color: #ccc;
+    width: 100%;
+    font-size: 12px;
+    line-height: 1em;
+    padding: 2px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    resize: none;
+    box-sizing: border-box;
+    margin-bottom: 0px;
+    color: #333;
+    flex: 1;
+}
+
+.loader-wrapper {
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    position: relative;
+    vertical-align: middle;
+}
+
+/* HTML: <div class="loader"></div> */
+.loader {
+    width: 20px;
+    height: 20px;
+    aspect-ratio: 1;
+    --_g: no-repeat radial-gradient(farthest-side, #000 90%, #0000);
+    background: var(--_g), var(--_g), var(--_g), var(--_g);
+    background-size: 40% 40%;
+    animation: l46 1s infinite;
+}
+
+@keyframes l46 {
+    0% {
+        background-position: 0 0, 100% 0, 100% 100%, 0 100%
+    }
+
+    40%,
+    50% {
+        background-position: 100% 100%, 100% 0, 0 0, 0 100%
+    }
+
+    90%,
+    100% {
+        background-position: 100% 100%, 0 100%, 0 0, 100% 0
+    }
+}
+

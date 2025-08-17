@@ -4,7 +4,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
-from django.db.models import CASCADE
+from django.db.models import CASCADE, SET_NULL
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from judge.judgeapi import disconnect_judge, update_disable_judge
 
-__all__ = ['Language', 'RuntimeVersion', 'Judge']
+__all__ = ['Language', 'RuntimeVersion', 'Judge', 'Judge0Language']
 
 
 class Language(models.Model):
@@ -53,6 +53,8 @@ class Language(models.Model):
 
     include_in_problem = models.BooleanField(verbose_name=_('Include in problems'), default=False,
                                              help_text=_('If true, this language will be added to all problems'))
+    judge0 = models.ForeignKey('Judge0Language', verbose_name=_('Judge0 language'), on_delete=SET_NULL, null=True, blank=True,
+                               help_text=_('If this language is supported by Judge0, it will be used for running custom tests.'))
 
     def runtime_versions(self):
         runtimes = OrderedDict()
@@ -120,6 +122,22 @@ class Language(models.Model):
         verbose_name = _('language')
         verbose_name_plural = _('languages')
 
+
+class Judge0Language(models.Model):
+    name = models.CharField(max_length=64, verbose_name=_('language name'))
+    monaco = models.CharField(max_length=64, verbose_name=_('monaco language ID'), blank=True)
+
+    def __str__(self):
+        return self.name
+
+    @cached_property
+    def display_name(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = _('Judge0 language')
+        verbose_name_plural = _('Judge0 languages')
+        ordering = ['name']
 
 class RuntimeVersion(models.Model):
     language = models.ForeignKey(Language, verbose_name=_('language to which this runtime belongs'), on_delete=CASCADE)
@@ -201,3 +219,13 @@ class Judge(models.Model):
         ordering = ['name']
         verbose_name = _('judge')
         verbose_name_plural = _('judges')
+
+class CustomTestHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+    code = models.TextField()
+    input_data = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _('custom test history')
+        verbose_name_plural = _('custom test histories')

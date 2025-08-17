@@ -22,6 +22,7 @@ from django.utils.translation import gettext_lazy as _, ngettext_lazy
 
 from judge.models import BlogPost, Contest, ContestAnnouncement, ContestProblem, Language, LanguageLimit, \
     Organization, Problem, Profile, Solution, Submission, Tag, WebAuthnCredential
+from judge.models.runtime import Judge0Language
 from judge.utils.subscription import newsletter_id
 from judge.widgets import AceWidget, HeavySelect2MultipleWidget, HeavySelect2Widget, MartorWidget, \
     Select2MultipleWidget, Select2Widget
@@ -362,6 +363,39 @@ class ContestDownloadDataForm(Form):
         if not self.cleaned_data['submission_download']:
             return ()
         return self.cleaned_data['submission_result']
+
+class ProblemCustomTestForm(ModelForm):
+    source = CharField(max_length=65536, required=False, widget=AceWidget(theme='twilight', no_ace_media=True))
+    input = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 2,
+            'cols': 80,
+            'class': 'customtest',
+        }),
+        required=False
+    )
+
+    def check_submission(self):
+        source = self.cleaned_data.get('source', '')
+
+        if (source == ''):
+            raise forms.ValidationError(_('Source code is missing or redundant. Please try again'))
+
+
+    def clean(self):
+        cleaned_data = super(ProblemCustomTestForm, self).clean()
+        self.check_submission()
+        return cleaned_data
+    
+    def __init__(self, *args, judge_choices=(), **kwargs):
+        super(ProblemCustomTestForm, self).__init__(*args, **kwargs)
+        self.fields['language'].empty_label = None
+        self.fields['language'].label_from_instance = attrgetter('display_name')
+        self.fields['language'].queryset = Language.objects.filter(judge0__isnull=False).distinct()
+
+    class Meta:
+        model = Submission
+        fields = ['language']
 
 
 class ProblemSubmitForm(ModelForm):

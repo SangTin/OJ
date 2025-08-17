@@ -15,7 +15,8 @@
             "extension": "cpp",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 52
         }
     },
     {
@@ -34,7 +35,8 @@
             "extension": "cpp",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 52
         }
     },
     {
@@ -53,7 +55,8 @@
             "extension": "cpp",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 52
         }
     },
     {
@@ -72,7 +75,8 @@
             "extension": "cpp",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 52
         }
     },
     {
@@ -91,7 +95,8 @@
             "extension": "c",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 50
         }
     },
     {
@@ -110,7 +115,8 @@
             "extension": "c",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 50
         }
     },
     {
@@ -123,13 +129,14 @@
             "common_name": "Pascal",
             "ace": "pascal",
             "pygments": "pascal",
-            "template": "",
+            "template": "program vtoj;\r\nbegin\r\n\r\nend.",
             "info": "",
             "description": "Compile options: `fpc -Fe/dev/stderr -O2`",
             "extension": "pas",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 67
         }
     },
     {
@@ -148,7 +155,8 @@
             "extension": "py",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 70
         }
     },
     {
@@ -167,7 +175,8 @@
             "extension": "py",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 71
         }
     },
     {
@@ -186,7 +195,8 @@
             "extension": "java",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": null
         }
     },
     {
@@ -205,7 +215,8 @@
             "extension": "txt",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": false
+            "include_in_problem": false,
+            "judge0": 43
         }
     },
     {
@@ -224,7 +235,8 @@
             "extension": "sb3",
             "file_only": true,
             "file_size_limit": 1,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": null
         }
     },
     {
@@ -243,7 +255,8 @@
             "extension": "zip",
             "file_only": true,
             "file_size_limit": 10,
-            "include_in_problem": false
+            "include_in_problem": false,
+            "judge0": null
         }
     },
     {
@@ -262,7 +275,8 @@
             "extension": "cpp",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": null
         }
     },
     {
@@ -281,7 +295,8 @@
             "extension": "kt",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 78
         }
     },
     {
@@ -300,7 +315,8 @@
             "extension": "py",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 70
         }
     },
     {
@@ -319,7 +335,8 @@
             "extension": "py",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 71
         }
     },
     {
@@ -338,7 +355,8 @@
             "extension": "java",
             "file_only": false,
             "file_size_limit": 0,
-            "include_in_problem": true
+            "include_in_problem": true,
+            "judge0": 62
         }
     }
 ]
