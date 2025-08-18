@@ -136,17 +136,50 @@
                         let $form = $(this);
 
                         $('#loading').show();
+                        $('#code_output').text('');
+                        $('#run_status').hide();
+                        $('#run_info').hide();
+                        $('#run_error').hide();
+                        $('#source_errors').hide();
 
                         $.ajax({
                             type: 'POST',
                             url: $form.attr('action'),
                             data: $form.serialize(),
                             success: function(resp){
-                                console.log('Response from server:', resp);
-                                $('#code_output').val(resp.output);
+
+                                var run_status = $('#run_status');
+                                run_status.removeClass('text-success text-danger text-warning');
+                                switch (resp.status.id) {
+                                    case 3:
+                                        run_status.addClass('text-success');
+                                        $('#code_output').text(resp.stdout || '{{ _("Standard output is empty")|escapejs }}');
+                                        break;
+                                    case 5:
+                                        run_status.addClass('text-warning');
+                                        break;
+                                    case 6:
+                                        $('#run_error').text(resp.compile_output).show();
+                                    default:
+                                        run_status.addClass('text-danger');
+                                }
+                                // if not null and != 0 and not undefined
+                                if (resp.exit_code) {
+                                    run_status.text(`Exit code ${resp.exit_code}`).show();
+                                } else {
+                                    run_status.text(resp.status.description).show();
+                                }
+                                if (resp.time && resp.memory) {
+                                    $('#run_info').text(`${resp.time}s, ${resp.memory}KB`).show();
+                                }
                             },
-                            error: function(){
-                                alert('Error running code!');
+                            error: function(resp) {
+                                const errors = resp.responseJSON?.errors || 'Unknown error';
+                                $('#source_errors').empty().append(
+                                    Object.entries(errors).map(([field, messages]) => {
+                                        return messages.map(msg => `<li>${msg}</li>`).join('');
+                                    }).join('')
+                                ).show();
                             },
                             complete: function() {
                                 $('#loading').hide();
@@ -156,13 +189,16 @@
                     }
                 });
 
+                $('#copy_output').on('click', function() {
+                    const output = $('#code_output').text();
+                    const btn = $(this);
+                    navigator.clipboard.writeText(output).catch(err => console.error('Failed to copy:', err));
+                });
+
                 function on_language_change() {
                     obj = document.getElementById('id_language');
                     fileonly = obj.options[obj.selectedIndex].getAttribute('data-fileonly');
                     if (fileonly == 'True') {
-                        if (!$('#editor').hasClass('hidden')) {
-                            $('#editor').addClass('hidden');
-                        }
                         if ($('#file-submit').hasClass('hidden')) {
                             $('#file-submit').removeClass('hidden');
                         }
@@ -176,9 +212,6 @@
                             {{ _('`Only accept "${file_ext}". Maximum file size is ${file_size_limit}MB.`') }}
                         );
                     } else {
-                        if ($('#editor').hasClass('hidden')) {
-                            $('#editor').removeClass('hidden');
-                        }
                         if (!$('#file-submit').hasClass('hidden')) {
                             $('#file-submit').addClass('hidden');
                         }
@@ -219,14 +252,22 @@
         <div id="content-right" class="customtest">
             <div class="info-box">
                 <div class="info-title">{{ _('Input') }}</div>
-                <div class="info-data">
-                    {{ form.input }}
-                </div>
+                {{ form.input }}
             </div>
             <div class="info-box">
-                <div class="info-title">{{ _('Output') }}</div>
-                <div class="info-data">
-                    <textarea name="code_output" id="code_output" rows="2" cols="80" class="customtest info-data" readonly></textarea>
+                <div class="info-title" style="display:flex; justify-content: space-between; align-items:center;">
+                    {{ _('Output') }}
+                    <button type="button" id="copy_output" class="copy-btn" title="Copy output">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+                <div class="info-data" contenteditable="false" style="padding:8px;">
+                    <pre id="code_output"></pre>
+                    <div>
+                        <span id="run_status" hidden></span>
+                        <span id="run_info" style="color:#777;" hidden></span>
+                    </div>
+                    <pre id="run_error" hidden></pre>
                 </div>
             </div>
         </div>
@@ -248,8 +289,9 @@
                     </div>
                 </div>
                 <hr>
-                <div id="editor" class="hidden">
-                    {{ form.source.errors }}
+                <div id="editor">
+                    <ul class="errorlist" id="source_errors" hidden>
+                    </ul>
                     {{ form.source }}
                 </div>
             </div>

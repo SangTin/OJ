@@ -24,19 +24,35 @@
         flex: 2;
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
     .info-box {
-        flex: 1;
+        flex: 1 1 0; 
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
 
     .info-data {
         flex: 1;
-        display: flex;
-        flex-direction: column;
+        overflow: auto;
     }
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 2px;
+}
+
+.copy-btn:hover {
+    .fa {
+        color: darken($color_primary50, 15%);
+    }
+    background: none;
 }
 
 #content-left {
@@ -109,3 +125,14 @@ textarea.customtest {
     }
 }
 
+.text-danger {
+    color: #dc3545;
+}
+
+.text-success {
+    color: #28a745;
+}
+
+.text-warning {
+    color: #ffc107;
+}

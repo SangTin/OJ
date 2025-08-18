@@ -20,6 +20,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _, ngettext_lazy
 
+from django_ace.widgets import DivTextarea
 from judge.models import BlogPost, Contest, ContestAnnouncement, ContestProblem, Language, LanguageLimit, \
     Organization, Problem, Profile, Solution, Submission, Tag, WebAuthnCredential
 from judge.models.runtime import Judge0Language
@@ -367,20 +368,15 @@ class ContestDownloadDataForm(Form):
 class ProblemCustomTestForm(ModelForm):
     source = CharField(max_length=65536, required=False, widget=AceWidget(theme='twilight', no_ace_media=True))
     input = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'rows': 2,
-            'cols': 80,
-            'class': 'customtest',
-        }),
+        widget=DivTextarea(editable=True, attrs={"class": "customtest info-data", "style": "padding:8px;"}),
         required=False
     )
-
+    
     def check_submission(self):
         source = self.cleaned_data.get('source', '')
 
         if (source == ''):
-            raise forms.ValidationError(_('Source code is missing or redundant. Please try again'))
-
+            self.add_error('source', _('Source code is missing or redundant. Please try again'))
 
     def clean(self):
         cleaned_data = super(ProblemCustomTestForm, self).clean()

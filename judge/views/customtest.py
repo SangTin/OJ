@@ -89,7 +89,7 @@ class CustomTestRunView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         form = ProblemCustomTestForm(request.POST)
         if not form.is_valid():
-            return JsonResponse({"error": "Invalid input"}, status=400)
+            return JsonResponse({"errors": form.errors}, status=400)
 
         data = form.cleaned_data
         language = data.get("language")
@@ -107,11 +107,15 @@ class CustomTestRunView(LoginRequiredMixin, View):
             data.get("input", ""),
             language,
         )
-        if not api_response:
-            return JsonResponse({"error": "Judge0 call failed"}, status=500)
 
-        compile_output = api_response.compile_output
-        output = api_response.stdout if api_response.stdout else _("Standard output is empty")
-        if compile_output:
-            output = compile_output
-        return JsonResponse({"output": output})
+        return JsonResponse({
+            "status": {
+                "id": api_response.status.value,
+                "description": str(api_response.status),
+            },
+            "stdout": api_response.stdout,
+            "compile_output": api_response.compile_output,
+            "time": api_response.time,
+            "memory": api_response.memory,
+            "exit_code": api_response.exit_code
+        })

@@ -3,6 +3,7 @@ Django-ace originally from https://github.com/django-ace/django-ace.
 """
 
 from urllib.parse import urljoin
+import uuid
 
 from django import forms
 from django.conf import settings
@@ -55,3 +56,39 @@ class AceWidget(forms.Textarea):
                 '<a href="./" class="django-ace-max_min"></a></div>%s</div>') % html
 
         return mark_safe(html)
+
+class DivTextarea(forms.Textarea):
+    def __init__(self, editable=True, attrs=None, *args, **kwargs):
+        self.editable = editable
+        super().__init__(attrs, *args, **kwargs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        value = value or ""
+        editable_attr = "true" if self.editable else "false"
+        attrs = attrs or {}
+        div_id = attrs.get("id", f"div_{uuid.uuid4().hex[:8]}")
+        attrs["id"] = f"{div_id}_hidden"
+
+        # Render div contenteditable
+        final_attrs = self.build_attrs(self.attrs, attrs)
+        attrs_str = " ".join(f'{key}="{val}"' for key, val in final_attrs.items())
+        div_html = f'<div id="{div_id}" {attrs_str} contenteditable="{editable_attr}" class="customtest info-data">{value}</div>'
+
+        # JS copy nội dung từ div vào textarea khi submit
+        js = f'''
+<script>
+document.addEventListener("DOMContentLoaded", function(){{
+    var div = document.getElementById("{div_id}");
+    var textarea = document.getElementById("{div_id}_hidden");
+    div.closest("form").addEventListener("submit", function() {{
+        textarea.value = div.innerText;
+    }});
+}});
+</script>
+'''
+
+        attrs['hidden'] = True
+        # Render textarea thật (Django nhận dữ liệu)
+        textarea_html = super().render(name, value, attrs, renderer)
+
+        return mark_safe(div_html + textarea_html + js)
