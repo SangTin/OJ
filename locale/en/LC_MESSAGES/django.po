@@ -6493,6 +6493,7 @@ msgid "Forgot your password?"
 msgstr ""
 
 #: templates/registration/login.html:65
+#: templates/registration/oauth.html:28
 msgid "Or log in with..."
 msgstr ""
 
@@ -6502,10 +6503,6 @@ msgstr ""
 
 #: templates/registration/logout.html:3
 msgid "See you later!"
-msgstr ""
-
-#: templates/registration/oauth.html:28
-msgid "Or log in with..."
 msgstr ""
 
 #: templates/registration/password_change_done.html:3
