@@ -9,22 +9,28 @@
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 0.5em;
-    background: rgba($color_primary100, 0.01);
-    backdrop-filter: blur(3px);
+    margin-bottom: 1em;
+    background: $color_primary0;
+    border-radius: $widget_border_radius;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
 
     &.striped tr:nth-child(2n) {
-        background: rgba($color_primary100, 0.03);
+        background: rgba($color_primary100, 0.02);
+    }
+
+    tbody tr {
+        transition: all 0.2s ease;
+        &:hover {
+            background: rgba($color_primary100, 0.04);
+        }
     }
 
     th {
         height: 2em;
-        color: $color_primary0;
-        background-color: $color_primary75;
-        border-color: $color_primary50;
-        border-width: 0 1px 1px 0;
-        border-style: solid;
-        padding: 4px 10px;
+        color: $color_primary100;
+        background-color: $color_primary5;
+        border-bottom: 2px solid $color_primary10;
+        padding: 12px 10px;
         vertical-align: middle;
         text-align: center;
         white-space: nowrap;
@@ -33,21 +39,15 @@
     }
 
     td {
-        border-color: $color_primary25;
-        border-width: 0 1px 1px 0;
-        border-style: solid;
-        padding: 7px 5px;
+        border-bottom: 1px solid $color_primary10;
+        padding: 12px 10px;
         vertical-align: middle;
         text-align: center;
     }
 
     // Border fixes
-    th:first-child, td:first-child {
-        border-left-width: 1px;
-    }
-
-    tr:first-child th, tr:first-child td {
-        border-top-width: 1px;
+    tr:last-child td {
+        border-bottom: none;
     }
 
     // Rounded corners for <th>
@@ -59,7 +59,11 @@
         border-top-right-radius: $table_header_rounding;
     }
 
-    tbody tr:last-child th:first-child {
+    tbody tr:last-child td:first-child {
         border-bottom-left-radius: $table_header_rounding;
+    }
+
+    tbody tr:last-child td:last-child {
+        border-bottom-right-radius: $table_header_rounding;
     }
 }

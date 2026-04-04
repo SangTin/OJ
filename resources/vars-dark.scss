@@ -2,23 +2,23 @@
 
 $is_light_theme: false;
 
-$color_primary0: #0f0f0f;
-$color_primary5: #111;      // light background
-$color_primary10: #181818;  // background
-$color_primary25: #3b3b3b;  // border
-$color_primary33: #555;     // widget
-$color_primary50: #808080;
-$color_primary66: #aaa;     // tabs
-$color_primary75: #ccc;     // widget
-$color_primary90: #eee;
-$color_primary100: #f8f8f8;
+$color_primary0: #020617;
+$color_primary5: #0f172a;      // light background
+$color_primary10: #1e293b;  // background
+$color_primary25: #334155;  // border
+$color_primary33: #475569;     // widget
+$color_primary50: #64748b;
+$color_primary66: #94a3b8;     // tabs
+$color_primary75: #cbd5e1;     // widget
+$color_primary90: #e2e8f0;
+$color_primary100: #f8fafc;
 
-$color_link50: #06d;    // default (title)
-$color_link75: #6bf;    // default
-$color_link100: #49e;   // hover
-$color_link200: #d83;   // active
+$color_link50: #6366f1;    // default (title)
+$color_link75: #818cf8;    // default
+$color_link100: #a5b4fc;   // hover
+$color_link200: #fb923c;   // active
 
-$color_pageBg: #222;    // #222 because some elements should be darker than pageBg
+$color_pageBg: #020617;    // #222 because some elements should be darker than pageBg
 
 // custom one-off colours
 $color_contest_ranking_disqualified: #622;
