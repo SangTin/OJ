@@ -1,0 +1,382 @@
+#tagproblem-table td.problem-name, #tagproblem-table th.problem-name, #tag-table td.problem-name, #tag-table th.problem-name {
+  text-align: left;
+}
+#tagproblem-table td.problem-code, #tagproblem-table td.judge, #tagproblem-table th.problem-code, #tagproblem-table th.judge, #tag-table td.problem-code, #tag-table td.judge, #tag-table th.problem-code, #tag-table th.judge {
+  white-space: nowrap;
+}
+#tagproblem-table td.problem-code, #tagproblem-table th.problem-code, #tag-table td.problem-code, #tag-table th.problem-code {
+  width: 20%;
+}
+#tagproblem-table td.problem-name, #tagproblem-table th.problem-name, #tag-table td.problem-name, #tag-table th.problem-name {
+  width: 65%;
+}
+#tagproblem-table td.judge, #tagproblem-table th.judge, #tag-table td.judge, #tag-table th.judge {
+  width: 15%;
+}
+#tagproblem-table tr, #tag-table tr {
+  transition: background-color linear 0.2s;
+}
+#tagproblem-table tr:hover, #tag-table tr:hover {
+  background: rgba(248, 248, 248, 0.05);
+}
+
+#tagproblem-table .row-tag-list {
+  font-size: 0.75em;
+  padding-top: 1px;
+  text-align: right;
+}
+#tagproblem-table .row-tag-list, #tagproblem-table .row-tag-list a {
+  color: grey !important;
+}
+
+#problem-table td.problem-code, #problem-table td.problem-name, #problem-table td.category, #problem-table td.types, #problem-table th.problem-code, #problem-table th.problem-name, #problem-table th.category, #problem-table th.types {
+  text-align: left;
+  padding: 0 1rem;
+}
+#problem-table td.solved, #problem-table td.points, #problem-table td.ac-rate, #problem-table td.editorial, #problem-table td.users, #problem-table th.solved, #problem-table th.points, #problem-table th.ac-rate, #problem-table th.editorial, #problem-table th.users {
+  padding: 0 10px;
+  white-space: nowrap;
+}
+#problem-table td.problem-code, #problem-table th.problem-code {
+  word-break: break-all;
+}
+#problem-table th a {
+  color: inherit;
+}
+#problem-table tr {
+  transition: background-color linear 0.2s;
+}
+#problem-table tr:hover {
+  background: rgba(248, 248, 248, 0.05);
+}
+
+#filter-form {
+  vertical-align: top;
+  margin-bottom: 0.5em;
+  margin-top: 0.75em;
+}
+#filter-form a {
+  margin-right: 5px;
+  display: inline-block;
+  padding: 3px 10px;
+  vertical-align: middle;
+}
+#filter-form input {
+  vertical-align: middle;
+  margin-bottom: 0.5em;
+}
+#filter-form label {
+  vertical-align: middle;
+}
+#filter-form .filter-form-group {
+  margin-top: 5px;
+}
+
+#content-right.problems {
+  max-width: unset;
+  padding-top: 0;
+}
+
+#content-left.problems {
+  flex: 3;
+}
+
+#search {
+  width: 100%;
+  height: 2.3em;
+}
+
+label[for=category], label[for=type] {
+  padding-bottom: 0.25em;
+  display: block;
+}
+
+#category {
+  margin-top: 0.5em;
+  width: 100%;
+}
+
+#types {
+  width: 100%;
+}
+
+ul.problem-list {
+  list-style: none;
+  padding-left: 1em;
+  padding-right: 0.5em;
+}
+ul.problem-list li {
+  margin-bottom: 0.5em;
+}
+
+.pi-name {
+  font-weight: bold;
+}
+
+.pi-name:after {
+  content: " ";
+}
+
+.authors-value, .judges-value {
+  padding-left: 1.5em;
+  overflow-wrap: break-word;
+}
+
+.lang-name:after {
+  content: ": ";
+}
+
+.lang-limit {
+  margin-left: 1.5em;
+}
+
+.solved-problem-color {
+  color: #44AD41;
+}
+
+.unsolved-problem-color {
+  color: #DE2121;
+}
+
+.attempted-problem-color {
+  color: orange;
+}
+
+.has-editorial-color {
+  color: #44AD41;
+}
+
+.no-editorial-color {
+  color: #DE2121;
+}
+
+.submissions-left {
+  color: #f8f8f8;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 0.5em;
+}
+
+.no-submissions-left {
+  color: red;
+}
+
+.organization-tags {
+  padding-left: 0.75em;
+  vertical-align: middle;
+}
+
+.organization-tag {
+  box-shadow: inset 0 -0.1em 0 rgba(248, 248, 248, 0.12);
+  padding: 0.15em 0.3em;
+  border-radius: 0.15em;
+  font-weight: 600;
+  margin-right: 0.45em;
+  position: relative;
+  background-color: #3b3b3b;
+  transform: translateY(35%);
+  display: inline-block;
+}
+
+.organization-tag a {
+  color: #f8f8f8;
+}
+
+.pdf-icon {
+  position: relative;
+  display: inline-block;
+  font-size: 1.5em;
+}
+.pdf-icon .pdf-icon-logo {
+  color: #d40e13;
+}
+.pdf-icon .pdf-icon-bar {
+  height: 0.2em;
+  display: block;
+  position: absolute;
+  top: 0.3em;
+  background: #d40e13;
+  width: 0.6em;
+  margin-left: -0.15em;
+}
+
+.license {
+  float: left;
+  font-size: 0.85em;
+}
+.license a {
+  color: #808080;
+  text-decoration: none;
+}
+
+.clarify {
+  float: right;
+}
+
+#problem_submit {
+  width: 100%;
+  box-sizing: border-box;
+}
+#problem_submit .hidden {
+  display: none;
+}
+#problem_submit .button {
+  display: inline-block !important;
+  padding: 6px 12px;
+}
+#problem_submit .submit-bar {
+  float: right;
+}
+#problem_submit #submit-wrapper {
+  margin-top: 0.7em;
+}
+#problem_submit #submit-wrapper #editor, #problem_submit #submit-wrapper #language {
+  margin-top: 4px;
+}
+#problem_submit #submit-wrapper #id_language {
+  width: 100%;
+}
+#problem_submit #file_drag {
+  border: 2px dashed #999;
+  border-radius: 7px;
+  color: #999;
+  cursor: pointer;
+  display: block;
+  padding: 1.5em;
+  text-align: center;
+  transition: background 0.3s, color 0.3s;
+}
+#problem_submit #file_drag:hover, #problem_submit #file_drag.hover {
+  background: #ddd;
+  border-style: solid;
+  box-shadow: inset 0 3px 4px #999;
+}
+#problem_submit .helptext {
+  font-size: 13px;
+  color: #999;
+  border-width: 0 0 1px 0;
+}
+#problem_submit .helptext::before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  content: "\f05a";
+  padding-right: 5px;
+  font-size: 14px;
+}
+#problem_submit .errorlist {
+  background: rgba(255, 0, 0, 0.3);
+  border: 3px dashed red;
+  border-right: none;
+  border-left: solid red;
+  padding: 0 1em 0.1em 2em;
+  margin: 0.3em 0 0.5em 0;
+}
+#problem_submit .errornote {
+  border: 3px dashed #ffc000;
+  border-left: solid #ffc000;
+  padding: 0.7em 2em;
+  margin: 0 0 8px;
+  font-size: 13px !important;
+  font-weight: 400;
+}
+#problem_submit .required th::after {
+  content: "*";
+  color: red;
+}
+
+#language-select2.select2-dropdown--above {
+  display: flex;
+  flex-direction: column-reverse;
+}
+#language-select2 .select2-results__message {
+  white-space: nowrap;
+}
+#language-select2 .select2-results__option {
+  color: #8a8a8a !important;
+  background: #0f0f0f !important;
+}
+#language-select2 .select2-results__option--highlighted {
+  text-decoration: underline;
+}
+#language-select2 .select2-results__option[aria-selected=true] {
+  font-weight: bold;
+  color: #f8f8f8 !important;
+}
+#language-select2 .select2-results__option {
+  padding: 4px 0px;
+}
+#language-select2 .select2-results__options {
+  overflow-y: visible !important;
+}
+#language-select2 .select2-results__option {
+  break-inside: avoid-column;
+}
+#language-select2 .select2-results {
+  -webkit-columns: 10 7em;
+  -moz-columns: 10 7em;
+  columns: 10 7em;
+  padding-left: 1.5em;
+  padding-top: 0.5em;
+}
+#language-select2 #result-version-info {
+  border-bottom: 1px solid #808080;
+  margin: 0px 1em;
+  color: #8a8a8a;
+  font-weight: 600;
+  padding: 0.2em 0;
+  text-align: right;
+}
+
+@media (max-width: 550px) {
+  #problem-table tr .users {
+    display: none;
+  }
+}
+@media (max-width: 450px) {
+  #problem-table tr .ac-rate {
+    display: none;
+  }
+}
+@media (max-width: 350px) {
+  #problem-table tr .category {
+    display: none;
+  }
+}
+#category, #types {
+  visibility: hidden;
+}
+
+#filter-form .form-label {
+  margin-top: 0.5em;
+  font-style: italic;
+}
+
+#point-slider {
+  margin: 30px 15px 10px;
+  height: 10px;
+}
+#point-slider .noUi-handle {
+  height: 20px;
+  width: 16px;
+  left: -8px;
+}
+#point-slider .noUi-handle:before, #point-slider .noUi-handle:after {
+  top: 3px;
+  height: 12px;
+}
+#point-slider .noUi-handle:before {
+  left: 5px;
+}
+#point-slider .noUi-handle:after {
+  left: 8px;
+}
+#point-slider .noUi-tooltip {
+  height: 17px;
+  line-height: 13px;
+  padding: 0 3px;
+  font-size: 13px;
+}
+
+/*# sourceMappingURL=problem.css.map */

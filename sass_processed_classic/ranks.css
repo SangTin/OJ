@@ -1,0 +1,162 @@
+@charset "UTF-8";
+.admin a, .admin {
+  color: #f8f8f8 !important;
+  font-weight: bold !important;
+}
+
+.banned a, .banned {
+  color: black !important;
+  font-weight: normal !important;
+  text-decoration: line-through !important;
+}
+
+.banned a::before {
+  content: "🚫";
+}
+
+.staff a, .staff {
+  color: #ff888a !important;
+  font-weight: bold !important;
+}
+
+.staff a::before {
+  content: "🔥";
+}
+
+.daor a, .daor {
+  color: #ff0066 !important;
+  font-weight: bold !important;
+}
+
+.daor a::before {
+  content: "🌸";
+}
+
+.teacher a::before {
+  content: "🧑‍🏫";
+}
+
+.deleted-user, .deleted-user a {
+  color: #999;
+  font-weight: normal;
+  text-decoration: line-through #f8f8f8;
+}
+
+svg.rate-box {
+  width: 1.2em;
+}
+svg.rate-box circle {
+  fill: none;
+  stroke-width: 2px;
+}
+svg.rate-box.rate-none {
+  visibility: hidden;
+}
+svg.rate-box.rate-primary0 circle {
+  stroke: #0f0f0f;
+}
+svg.rate-box.rate-primary0 path {
+  fill: #0f0f0f;
+}
+svg.rate-box.rate-newbie circle {
+  stroke: #988f81;
+}
+svg.rate-box.rate-newbie path {
+  fill: #988f81;
+}
+svg.rate-box.rate-pupil circle {
+  stroke: #72ff72;
+}
+svg.rate-box.rate-pupil path {
+  fill: #72ff72;
+}
+svg.rate-box.rate-specialist circle {
+  stroke: #57fcf2;
+}
+svg.rate-box.rate-specialist path {
+  fill: #57fcf2;
+}
+svg.rate-box.rate-expert circle {
+  stroke: #337dff;
+}
+svg.rate-box.rate-expert path {
+  fill: #337dff;
+}
+svg.rate-box.rate-candidate-master circle {
+  stroke: #ff55ff;
+}
+svg.rate-box.rate-candidate-master path {
+  fill: #ff55ff;
+}
+svg.rate-box.rate-master circle, svg.rate-box.rate-international-master circle {
+  stroke: #ff981a;
+}
+svg.rate-box.rate-master path, svg.rate-box.rate-international-master path {
+  fill: #ff981a;
+}
+svg.rate-box.rate-grandmaster circle, svg.rate-box.rate-international-grandmaster circle, svg.rate-box.rate-legendary-grandmaster circle {
+  stroke: #ff1a1a;
+}
+svg.rate-box.rate-grandmaster path, svg.rate-box.rate-international-grandmaster path, svg.rate-box.rate-legendary-grandmaster path {
+  fill: #ff1a1a;
+}
+
+.rating {
+  font-weight: bold;
+}
+
+.rate-none, .rate-none a {
+  color: #aaa;
+  font-weight: normal;
+}
+
+.rate-newbie, .rate-newbie a {
+  color: #988f81;
+}
+
+.rate-pupil, .rate-pupil a {
+  color: #72ff72;
+}
+
+.rate-specialist, .rate-specialist a {
+  color: #57fcf2;
+}
+
+.rate-expert, .rate-expert a {
+  color: #337dff;
+}
+
+.rate-candidate-master, .rate-candidate-master a {
+  color: #ff55ff;
+}
+
+.rate-master, .rate-master a,
+.rate-international-master, .rate-international-master a {
+  color: #ff981a;
+}
+
+.rate-grandmaster, .rate-grandmaster a,
+.rate-international-grandmaster, .rate-international-grandmaster a,
+.rate-legendary-grandmaster, .rate-legendary-grandmaster a {
+  color: #ff1a1a;
+}
+
+.rate-legendary-grandmaster a::first-letter {
+  color: #f8f8f8;
+}
+
+.rate-group {
+  white-space: nowrap;
+  display: inline-block;
+  color: black;
+}
+.rate-group .rating {
+  display: inline-block;
+  vertical-align: middle;
+}
+.rate-group .rate-box {
+  margin-right: 0.2em;
+  vertical-align: middle;
+}
+
+/*# sourceMappingURL=ranks.css.map */

@@ -1,0 +1,13 @@
+.short-code-widget-container {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.short-code-widget-button {
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/*# sourceMappingURL=short_code_widget.css.map */

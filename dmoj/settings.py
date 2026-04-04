@@ -455,6 +455,7 @@ MIDDLEWARE = (
     'judge.middleware.ShortCircuitMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'judge.middleware.VNOJUISwitchMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'judge.middleware.APIMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

@@ -250,3 +250,28 @@ class OrganizationSubdomainMiddleware(object):
             # inject the logo override image into the template context
             response.context_data['logo_override_image'] = request.organization.logo_override_image
         return response
+
+class VNOJUISwitchMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Allow switching via query parameter ?switch_ui=modern or ?switch_ui=classic
+        switch_ui = request.GET.get('switch_ui')
+        if switch_ui in ('modern', 'classic'):
+            # The redirect will happen after setting the cookie
+            # We remove the query param from the redirect URL
+            path = request.path
+            query = request.GET.copy()
+            query.pop('switch_ui')
+            if query:
+                path += '?' + query.urlencode()
+            
+            response = HttpResponseRedirect(path)
+            # Set cookie for 1 year
+            response.set_cookie('vnoj_ui_version', switch_ui, max_age=31536000, path='/')
+            return response
+
+        # Read the UI version from cookie, default to 'classic'
+        request.vnoj_ui_version = request.COOKIES.get('vnoj_ui_version', 'classic')
+        return self.get_response(request)
