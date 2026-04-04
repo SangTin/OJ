@@ -50,17 +50,8 @@
     <link rel="stylesheet" href="{{ FONTAWESOME_CSS }}">
     {% endif %}
     {% compress css %}
-    {# TODO: once dark mode support is better, enable for all users by deleting the else branch #}
-    {% if perms.judge.test_site %}
-    {% if PREFERRED_STYLE_CSS is not none %}
-    <link rel="stylesheet" href="{{ static(PREFERRED_STYLE_CSS) }}">
-    {% else %}
-    <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}">
-    <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" media="(prefers-color-scheme: dark)">
-    {% endif %}
-    {% else %}
-    <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}">
-    {% endif %}
+    <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}" id="light-style" {% if SITE_THEME_NAME == 'dark' %} media="none" {% endif %}>
+    <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" id="dark-style" {% if SITE_THEME_NAME == 'light' %} media="none" {% elif SITE_THEME_NAME == 'auto' %} media="(prefers-color-scheme: dark)" {% endif %}>
     {% if INLINE_FONTAWESOME %}
     <link rel="stylesheet" href="{{ static('libs/fontawesome/font-awesome.css') }}">{% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,6 +71,45 @@
         }
     </style>
     {% endif %}
+
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'auto';
+            if (theme !== 'auto') {
+                document.documentElement.setAttribute('data-theme', theme);
+                const lightStyle = document.getElementById('light-style');
+                const darkStyle = document.getElementById('dark-style');
+                if (theme === 'dark') {
+                    if (lightStyle) lightStyle.setAttribute('media', 'none');
+                    if (darkStyle) darkStyle.setAttribute('media', 'all');
+                } else {
+                    if (lightStyle) lightStyle.setAttribute('media', 'all');
+                    if (darkStyle) darkStyle.setAttribute('media', 'none');
+                }
+            }
+        })();
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            const lightStyle = document.getElementById('light-style');
+            const darkStyle = document.getElementById('dark-style');
+
+            if (newTheme === 'dark') {
+                if (lightStyle) lightStyle.setAttribute('media', 'none');
+                if (darkStyle) darkStyle.setAttribute('media', 'all');
+            } else {
+                if (lightStyle) lightStyle.setAttribute('media', 'all');
+                if (darkStyle) darkStyle.setAttribute('media', 'none');
+            }
+            
+            window.dispatchEvent(new Event('theme-change'));
+        }
+    </script>
     {% block media %}{% endblock %}
     {% if not INLINE_JQUERY %}
     <script src="{{ JQUERY_JS }}"></script>
@@ -216,7 +246,7 @@
         </style>
     </noscript>
 </head>
-<body{% if perms.judge.test_site %} data-theme="{{ SITE_THEME_NAME }}" {% endif %}>
+<body {% if request.user.is_authenticated %} data-profile-theme="{{ SITE_THEME_NAME }}" {% endif %}>
     <svg width="0" height="0" style="display: block">
         <defs>
             <clipPath id="rating-clip">
@@ -281,6 +311,11 @@
                         <span title="{{ _('Report issue') }}">
                             <i class="fa fa-exclamation-triangle"></i>
                         </span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="theme-toggle-btn nav-tool-btn" onclick="toggleTheme()" title="{{ _('Toggle theme') }}">
+                        <i class="fa fa-moon-o"></i>
+                        <i class="fa fa-sun-o"></i>
                     </a>
 
                     <div class="language-dropdown">

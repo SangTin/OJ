@@ -87,3 +87,16 @@ $color_blog_hero_bg: #eff6ff;
 $path_to_root: '.'; // relative path from style.css to STATIC_ROOT
 
 @mixin vars-img {}
+
+:root {
+    --header-bg: rgba(255, 255, 255, 0.7);
+    --header-border: rgba(226, 232, 240, 0.8);
+    --dropdown-bg: #ffffff;
+    --dropdown-border: rgba(0, 0, 0, 0.05);
+    --dropdown-hover: #f1f5f9;
+    --footer-bg: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --bg-glass: rgba(255, 255, 255, 0.5);
+    --border-glass: rgba(255, 255, 255, 0.3);
+}

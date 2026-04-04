@@ -88,3 +88,16 @@ $path_to_root: '..';    // relative path from style.css to STATIC_ROOT
 @mixin vars-img {
     filter: invert(1) hue-rotate(180deg);
 }
+
+:root {
+    --header-bg: rgba(15, 23, 42, 0.7);
+    --header-border: rgba(30, 41, 59, 0.8);
+    --dropdown-bg: #1e293b;
+    --dropdown-border: rgba(255, 255, 255, 0.1);
+    --dropdown-hover: rgba(255, 255, 255, 0.05);
+    --footer-bg: #0f172a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --bg-glass: rgba(15, 23, 42, 0.5);
+    --border-glass: rgba(255, 255, 255, 0.1);
+}
