@@ -314,8 +314,8 @@
                     </a>
 
                     <a href="javascript:void(0)" class="theme-toggle-btn nav-tool-btn" onclick="toggleTheme()" title="{{ _('Toggle theme') }}">
-                        <i class="fa fa-moon-o"></i>
-                        <i class="fa fa-sun-o"></i>
+                        <i data-lucide="moon" class="theme-icon-moon" fill="currentColor"></i>
+                        <i data-lucide="sun" class="theme-icon-sun" fill="currentColor"></i>
                     </a>
 
                     <div class="language-dropdown">
@@ -354,7 +354,7 @@
                                 <li><a href="{{ url('user_page') }}"><i class="fa fa-user"></i> {{ _('Profile') }}</a>
                                 </li>
                                 {% if request.user.is_staff or request.user.is_superuser %}
-                                <li><a href="{{ url('admin:index') }}"><i class="fa fa-user-shield"></i> {{ _('Admin')
+                                <li><a href="{{ url('admin:index') }}"><i class="fa fa-shield"></i> {{ _('Admin')
                                         }}</a></li>
                                 {% endif %}
                                 <li><a href="{{ url('user_edit_profile') }}"><i class="fa fa-edit"></i> {{ _('Edit
@@ -462,6 +462,13 @@
             </span>
         </footer>
     </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        window.addEventListener('theme-change', () => {
+            lucide.createIcons();
+        });
+    </script>
     </body>
 
 </html>

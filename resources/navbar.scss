@@ -348,17 +348,22 @@ nav {
                         font-weight: 500;
                         transition: background 0.2s;
 
-                        i {
+                        i, svg {
                             width: 20px;
+                            height: 20px;
                             text-align: center;
                             font-size: 1.1em;
                             color: var(--text-muted);
+                            transition: color 0.2s;
                         }
 
                         &:hover {
                             background: var(--dropdown-hover);
                             color: #045dc7;
-                            i { color: #045dc7; }
+
+                            i, svg {
+                                color: #045dc7 !important;
+                            }
                         }
                     }
                 }
@@ -392,8 +397,14 @@ nav {
         transform: translateY(-1px);
     }
 
-    .fa-sun-o { display: none; }
-    .fa-moon-o { display: inline-block; }
+    .theme-icon-sun { display: none; }
+    .theme-icon-moon { display: inline-block; }
+
+    svg {
+        width: 21px;
+        height: 21px;
+        stroke-width: 1.75px;
+    }
 }
 
 [data-theme="dark"] .theme-toggle-btn {
@@ -404,8 +415,8 @@ nav {
         color: #60a5fa;
     }
 
-    .fa-sun-o { display: inline-block; }
-    .fa-moon-o { display: none; }
+    .theme-icon-sun { display: inline-block; }
+    .theme-icon-moon { display: none; }
 }
 
 #header, #nav-container {
