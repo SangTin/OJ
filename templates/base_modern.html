@@ -49,14 +49,14 @@
     {% if not INLINE_FONTAWESOME %}
     <link rel="stylesheet" href="{{ FONTAWESOME_CSS }}">
     {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% compress css %}
     <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}" id="light-style" {% if SITE_THEME_NAME == 'dark' %} media="none" {% endif %}>
     <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" id="dark-style" {% if SITE_THEME_NAME == 'light' %} media="none" {% elif SITE_THEME_NAME == 'auto' %} media="(prefers-color-scheme: dark)" {% endif %}>
     {% if INLINE_FONTAWESOME %}
     <link rel="stylesheet" href="{{ static('libs/fontawesome/font-awesome.css') }}">{% endif %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {#
     <link rel="stylesheet" href="{{ static('source_sans_pro.css') }}"> #}
     <link rel="stylesheet" type="text/css" href="{{ static('libs/clipboard/tooltip.css') }}">
