@@ -83,7 +83,7 @@ $color_blog_tag_hover_text: #d0d0d0;
 $color_blog_tag_active_bg: #3b82f6;
 $color_blog_hero_bg: #252525;
 
-$path_to_root: '..';    // relative path from style.css to STATIC_ROOT
+$path_to_root: '../..';    // relative path from style.css to STATIC_ROOT
 
 @mixin vars-img {
     filter: invert(1) hue-rotate(180deg);

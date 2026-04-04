@@ -45,3 +45,7 @@ celerybeat-schedule.*
 resources/blog-modern.css
 resources/blog-post.css
 resources/theme-toggle.css
+.gitnexus
+.claude
+AGENTS.md
+CLAUDE.md
