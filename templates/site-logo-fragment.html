@@ -1,10 +1,10 @@
 {% if request.in_contest and request.participation.contest.logo_override_image %}
-    <img src="{{ request.participation.contest.logo_override_image|camo }}" alt="{{ SITE_NAME }}" height="40" style="border: none; padding-top: 4px;">
+    <img src="{{ request.participation.contest.logo_override_image|camo }}" alt="{{ SITE_NAME }}" style="border: none; max-height: 38px;">
 {% elif logo_override_image is defined and logo_override_image %}
-    <img src="{{ logo_override_image|camo }}" alt="{{ SITE_NAME }}" height="40" style="border: none; padding-top: 4px">
+    <img src="{{ logo_override_image|camo }}" alt="{{ SITE_NAME }}" style="border: none; max-height: 38px;">
 {% else %}
     {% with logo_url=misc_config.site_logo|default(static('icons/logo.svg'), true) %}
-    	<img src="{{ logo_url }}" alt="{{ SITE_NAME }}" width="130" height="40"
-             onerror="this.src=&quot;{{ logo_url }}&quot;; this.onerror=null" style="border: none; padding-top: 4px">
+    	<img src="{{ logo_url }}" alt="{{ SITE_NAME }}"
+             onerror="this.src=&quot;{{ logo_url }}&quot;; this.onerror=null" style="border: none; max-height: 38px;">
     {% endwith %}
 {% endif %}
