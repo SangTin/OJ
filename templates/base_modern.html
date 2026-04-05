@@ -299,7 +299,7 @@
 
             <span id="user-links">
                 <a href="javascript:void(0)" class="nav-tool-btn" onclick="switchUI('classic')" title="Switch to Classic UI">
-                    <i class="fa fa-desktop"></i>
+                    <i data-lucide="monitor" style="width: 16px; height: 16px;"></i>
                 </a>
 
                 {% if request.user.is_superuser %}
@@ -320,8 +320,8 @@
                     </a>
 
                     <a href="javascript:void(0)" class="theme-toggle-btn nav-tool-btn" onclick="toggleTheme()" title="{{ _('Toggle theme') }}">
-                        <i class="fa fa-moon-o theme-icon-moon"></i>
-                        <i class="fa fa-sun-o theme-icon-sun"></i>
+                        <i data-lucide="moon" class="theme-icon-moon" fill="currentColor"></i>
+                        <i data-lucide="sun" class="theme-icon-sun" fill="currentColor"></i>
                     </a>
 
 
