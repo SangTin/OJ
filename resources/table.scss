@@ -1,8 +1,133 @@
 @use "vars" as *;
 
+// ==========================================
+// Reusable Responsive Table Component
+// Usage: wrap any table in
+//   <div class="h-scrollable-table table-responsive">
+//     <table class="...">...</table>
+//   </div>
+// ==========================================
+
 .h-scrollable-table {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
 }
+
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+
+    th {
+        white-space: normal;
+        font-size: 0.95em;
+        padding: 10px 8px;
+    }
+
+    td {
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+// Reusable pagination bar (pagination + search form)
+// Usage: replace .top-pagination-bar with .table-pagination-bar
+//   <div class="table-pagination-bar">
+//     {% include "list-pages.html" %}
+//     <form id="search-form">...</form>
+//   </div>
+.table-pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 0.5em;
+
+    > div,
+    > form,
+    > ul.pagination {
+        flex-shrink: 0;
+    }
+
+    #search-form {
+        width: 225px;
+        max-width: 100%;
+
+        input {
+            width: 100%;
+        }
+    }
+}
+
+// ==========================================
+// Responsive: all tables on mobile
+// ==========================================
+
+@media (max-width: 760px) {
+    .h-scrollable-table {
+        display: block;
+    }
+
+    .table-responsive {
+        th {
+            white-space: normal;
+            font-size: 0.85em;
+            padding: 8px 6px;
+        }
+
+        td {
+            padding: 8px 6px;
+        }
+    }
+
+    // Pagination bar stacks on mobile
+    .table-pagination-bar {
+        flex-direction: column;
+        align-items: stretch;
+
+        > div,
+        > form,
+        > ul.pagination {
+            flex-shrink: 1;
+            width: 100%;
+        }
+
+        #search-form {
+            width: 100%;
+        }
+
+        ul.pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.25em;
+
+            li a,
+            li span {
+                padding: 4px 8px;
+                font-size: 0.85em;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .table-responsive {
+        th {
+            font-size: 0.8em;
+            padding: 6px 4px;
+        }
+
+        td {
+            padding: 6px 4px;
+            font-size: 0.9em;
+        }
+    }
+}
+
+// ==========================================
+// Base Table Styles
+// ==========================================
 
 .table {
     border-spacing: 0;

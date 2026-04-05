@@ -436,7 +436,20 @@ nav {
 @media (max-width: 760px) {
     #nav-container { padding: 0 12px; }
     #nav-left { min-width: auto; }
-    #user-links { min-width: auto; gap: 6px; }
+    #user-links {
+        min-width: auto;
+        gap: 6px;
+
+        .nav-tool-btn {
+            width: 34px;
+            height: 34px;
+        }
+
+        .user-avatar-btn .nav-avatar {
+            width: 28px;
+            height: 28px;
+        }
+    }
     #nav-list {
         flex-direction: column;
         position: fixed;
@@ -471,6 +484,57 @@ nav {
                 padding-left: 20px;
                 width: 100%;
                 margin: 0 !important;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    #nav-container {
+        padding: 0 8px;
+    }
+
+    #nav-left {
+        gap: 8px;
+
+        .nav-logo img {
+            height: 28px;
+        }
+    }
+
+    #user-links {
+        gap: 4px;
+        flex-shrink: 0;
+        overflow: visible;
+
+        .nav-tool-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+
+            i {
+                font-size: 1em;
+            }
+
+            img {
+                width: 18px;
+            }
+        }
+
+        .user-avatar-btn {
+            padding: 1px;
+
+            .nav-avatar {
+                width: 26px;
+                height: 26px;
+                border-width: 1.5px;
+            }
+        }
+
+        .language-dropdown {
+            .current-lang {
+                width: 32px;
+                height: 32px;
             }
         }
     }

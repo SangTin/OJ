@@ -4,6 +4,7 @@
     {% include "organization/requests/tabs.html" %}
 
     {% if requests %}
+        <div class="h-scrollable-table table-responsive">
         <table class="table">
             <tr>
                 <th>{{ _('User') }}</th>
@@ -24,6 +25,7 @@
                 </tr>
             {% endfor %}
         </table>
+        </div>
     {% else %}
         <p>{{ _('There are no requests to approve.') }}</p>
     {% endif %}

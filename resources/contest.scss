@@ -298,3 +298,201 @@ form.contest-join-pseudotab {
         width: 260px !important;
     }
 }
+
+// ==========================================
+// Responsive Media Queries (contest-specific)
+// ==========================================
+
+@media (max-width: 968px) {
+    #contest-calendar {
+        td {
+            height: 90px;
+            width: 140px;
+
+            ul {
+                font-size: 0.7em;
+            }
+        }
+    }
+
+    #ranking-table {
+        font-size: 13px;
+
+        .user-name {
+            min-width: 15em;
+        }
+    }
+}
+
+@media (max-width: 760px) {
+    // Contest calendar horizontal scroll
+    #contest-calendar {
+        display: block;
+        overflow-x: auto;
+
+        th, td {
+            width: 140px;
+            height: 90px;
+            font-size: 0.9em;
+        }
+    }
+
+    // Banner
+    #banner {
+        a.date {
+            font-size: 1.8em;
+        }
+    }
+
+    // Contest list - uses .table-responsive from table.scss
+    .contest-list {
+        td {
+            vertical-align: middle !important;
+        }
+
+        .contest-block {
+            padding: 0.5em 0.5em 0.5em 1em;
+        }
+
+        .time-left {
+            padding-top: 0.25em;
+            font-size: 0.9em;
+        }
+
+        .contest-tags {
+            padding-left: 0.25em;
+        }
+
+        .contest-tag {
+            margin-right: 0.25em;
+            font-size: 0.85em;
+        }
+
+        .participate-button {
+            width: 80px;
+        }
+
+        .contest-list-title {
+            font-size: 0.95em;
+        }
+    }
+
+    // Filter controls
+    #org-dropdown-check-list {
+        display: block;
+        margin-bottom: 0.5em;
+    }
+
+    #filter-by-organization-button {
+        width: 100%;
+    }
+
+    #org-check-list-wrapper {
+        position: relative;
+        width: 100%;
+
+        .select2-selection__rendered {
+            width: 100% !important;
+        }
+    }
+
+    #show-personal-info-checkbox,
+    #show-virtual-participations-checkbox {
+        display: block;
+        margin: 0.5em 0;
+    }
+}
+
+@media (max-width: 480px) {
+    // Calendar
+    #contest-calendar {
+        th, td {
+            width: 110px;
+            height: 75px;
+            font-size: 0.8em;
+        }
+
+        td ul {
+            font-size: 0.65em;
+        }
+    }
+
+    // Banner
+    #banner {
+        a.date {
+            font-size: 1.4em;
+        }
+
+        #time {
+            font-size: 0.85em;
+        }
+    }
+
+    // Contest list
+    .contest-list {
+        .contest-list-title {
+            font-size: 1em;
+        }
+
+        form.contest-join-pseudotab input {
+            width: 100%;
+            padding: 0.6em;
+        }
+    }
+
+    // Ranking table
+    #ranking-table {
+        font-size: 11px;
+
+        .user-name {
+            min-width: 8em;
+        }
+
+        th, td {
+            padding: 6px 4px;
+        }
+
+        .start-time, .personal-info {
+            display: none;
+        }
+    }
+
+    // ICPC cell legend
+    #cell_legend {
+        width: 100% !important;
+        font-size: 0.85em;
+    }
+
+    // Tabs
+    .tabs {
+        > ul {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+
+            > li {
+                flex-shrink: 0;
+
+                > a, > span {
+                    padding: 8px 10px;
+                    font-size: 0.9em;
+                }
+            }
+        }
+    }
+
+    // Search form
+    #search-contest,
+    #search-contest + .select2 {
+        width: 100% !important;
+    }
+
+    #search-form {
+        width: 100%;
+
+        input {
+            width: 100% !important;
+        }
+    }
+}

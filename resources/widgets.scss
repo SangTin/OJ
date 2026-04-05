@@ -259,7 +259,10 @@ ul.pagination a:hover {
 }
 
 ul.pagination {
-    display: inline-block;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
     padding-left: 0;
     margin: 0;
 
@@ -319,11 +322,99 @@ ul.pagination {
     margin: 11px 0 7px;
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.75em;
+
+    ul.pagination {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    #search-form {
+        flex-shrink: 0;
+    }
 }
 
 .bottom-pagination-bar {
     margin-top: 10px;
+
+    ul.pagination {
+        justify-content: center;
+    }
+
+    @media (max-width: 600px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5em;
+    }
+}
+
+// Page jump input inside the "..." ellipsis cell
+li.page-jump-input {
+    display: inline;
+    padding: 0;
+
+    .pagination-page-input {
+        width: 2.5em;
+        padding: 4px 0;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        line-height: 1.42857;
+        text-align: center;
+        color: $color_primary0;
+        background-color: $color_primary75;
+        border: 1px solid $color_primary50;
+        border-radius: 0;
+        cursor: text;
+        appearance: none;
+
+        &::placeholder {
+            color: $color_primary50;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        &:focus {
+            outline: none;
+            background-color: $highlight_blue;
+            border-color: $highlight_blue;
+            color: $color_primary0;
+        }
+
+        /* Remove spinner arrows */
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        -moz-appearance: textfield;
+    }
+
+    &:first-child .pagination-page-input {
+        border-top-left-radius: $widget_border_radius;
+        border-bottom-left-radius: $widget_border_radius;
+    }
+}
+
+.top-pagination-bar {
+    // Stack on very narrow screens
+    @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5em;
+
+        ul.pagination {
+            justify-content: center;
+        }
+    }
+}
+
+// Legacy page-jump element removal
+.page-jump {
+    display: none;
 }
 
 .alert {
