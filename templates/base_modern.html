@@ -477,15 +477,21 @@
             lucide.createIcons();
         });
 
+        function consumeUITransitionFlag() {
+            const cookies = document.cookie ? document.cookie.split('; ') : [];
+            for (const cookie of cookies) {
+                if (cookie === 'vnoj_ui_transition=1') {
+                    document.cookie = 'vnoj_ui_transition=; Max-Age=0; path=/; SameSite=Lax';
+                    return true;
+                }
+            }
+            return false;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const overlay = document.getElementById('ui-wipe-overlay');
-            if (overlay && window.location.search.includes('switched=1')) {
+            if (overlay && consumeUITransitionFlag()) {
                 overlay.classList.add('sweep-out');
-                
-                // Remove ?switched=1 from URL so it doesn't trigger again on reload
-                const newUrl = new URL(window.location);
-                newUrl.searchParams.delete('switched');
-                window.history.replaceState({}, '', newUrl);
             }
         });
 
@@ -496,13 +502,11 @@
                 setTimeout(() => {
                     const params = new URLSearchParams(window.location.search);
                     params.set('switch_ui', mode);
-                    params.set('switched', '1');
                     window.location.search = params.toString();
                 }, 600);
             } else {
                 const params = new URLSearchParams(window.location.search);
                 params.set('switch_ui', mode);
-                params.set('switched', '1');
                 window.location.search = params.toString();
             }
         }

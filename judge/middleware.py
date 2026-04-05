@@ -260,7 +260,7 @@ class VNOJUISwitchMiddleware(object):
         switch_ui = request.GET.get('switch_ui')
         if switch_ui in ('modern', 'classic'):
             # The redirect will happen after setting the cookie
-            # We remove the query param from the redirect URL
+            # We remove transient UI-switch params from the redirect URL
             path = request.path
             query = request.GET.copy()
             query.pop('switch_ui')
@@ -270,6 +270,8 @@ class VNOJUISwitchMiddleware(object):
             response = HttpResponseRedirect(path)
             # Set cookie for 1 year
             response.set_cookie('vnoj_ui_version', switch_ui, max_age=31536000, path='/')
+            # Short-lived flag for the destination page to play the switch animation without polluting the URL.
+            response.set_cookie('vnoj_ui_transition', '1', max_age=10, path='/', samesite='Lax')
             return response
 
         # Read the UI version from cookie, default to 'classic'
