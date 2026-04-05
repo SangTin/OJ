@@ -271,7 +271,7 @@ ul.pagination {
             display: inline;
 
             &:first-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     margin-left: 0;
                     border-top-left-radius: $widget_border_radius;
                     border-bottom-left-radius: $widget_border_radius;
@@ -279,14 +279,14 @@ ul.pagination {
             }
 
             &:last-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     border-top-right-radius: $widget_border_radius;
                     border-bottom-right-radius: $widget_border_radius;
                 }
             }
 
             > {
-                a, span {
+                a, span, input.pagination-page-input {
                     position: relative;
                     float: left;
                     padding: 4px 12px;
@@ -362,11 +362,7 @@ li.page-jump-input {
         font-size: inherit;
         font-family: inherit;
         font-weight: inherit;
-        line-height: 1.42857;
         text-align: center;
-        color: $color_primary0;
-        background-color: $color_primary75;
-        border: 1px solid $color_primary50;
         border-radius: 0;
         cursor: text;
         appearance: none;

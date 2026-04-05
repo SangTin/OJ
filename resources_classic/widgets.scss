@@ -264,7 +264,7 @@ ul.pagination {
             display: inline;
 
             &:first-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     margin-left: 0;
                     border-top-left-radius: $widget_border_radius;
                     border-bottom-left-radius: $widget_border_radius;
@@ -272,14 +272,14 @@ ul.pagination {
             }
 
             &:last-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     border-top-right-radius: $widget_border_radius;
                     border-bottom-right-radius: $widget_border_radius;
                 }
             }
 
             > {
-                a, span {
+                a, span, input.pagination-page-input {
                     position: relative;
                     float: left;
                     padding: 4px 12px;
@@ -320,6 +320,52 @@ ul.pagination {
 
 .bottom-pagination-bar {
     margin-top: 10px;
+}
+
+li.page-jump-input {
+    display: inline;
+    padding: 0;
+
+    .pagination-page-input {
+        width: 2.5em;
+        padding: 4px 0;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        text-align: center;
+        border-radius: 0;
+        cursor: text;
+        appearance: none;
+
+        &::placeholder {
+            color: $color_primary50;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        &:focus {
+            outline: none;
+            background-color: $highlight_blue;
+            border-color: $highlight_blue;
+            color: $color_primary0;
+        }
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        -moz-appearance: textfield;
+    }
+
+    &:first-child .pagination-page-input {
+        border-top-left-radius: $widget_border_radius;
+        border-bottom-left-radius: $widget_border_radius;
+    }
+}
+
+.page-jump {
+    display: none;
 }
 
 .alert {
