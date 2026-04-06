@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE }}"{% if SITE_THEME_NAME != 'auto' %} data-theme="{{ SITE_THEME_NAME }}"{% endif %}>
 
 <head>
     <title>{% block title %}{{ title }} - {{ SITE_LONG_NAME }}{% endblock %}</title>
@@ -68,13 +68,18 @@
     {% endif %}
 
     <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'auto';
-            if (theme !== 'auto') {
-                document.documentElement.setAttribute('data-theme', theme);
-                const lightStyle = document.getElementById('light-style');
-                const darkStyle = document.getElementById('dark-style');
-                if (theme === 'dark') {
+
+        function applyTheme(newTheme) {
+            const lightStyle = document.getElementById('light-style');
+            const darkStyle = document.getElementById('dark-style');
+
+            if (newTheme === 'auto') {
+                document.documentElement.removeAttribute('data-theme');
+                if (lightStyle) lightStyle.setAttribute('media', '');
+                if (darkStyle) darkStyle.setAttribute('media', '(prefers-color-scheme: dark)');
+            } else {
+                document.documentElement.setAttribute('data-theme', newTheme);
+                if (newTheme === 'dark') {
                     if (lightStyle) lightStyle.setAttribute('media', 'none');
                     if (darkStyle) darkStyle.setAttribute('media', 'all');
                 } else {
@@ -82,27 +87,34 @@
                     if (darkStyle) darkStyle.setAttribute('media', 'none');
                 }
             }
-        })();
 
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            // Sync with profile dropdown if it exists
+            const themeSelect = document.getElementById('id_site_theme');
+            if (themeSelect) {
+                themeSelect.value = newTheme;
+            }
 
-            const lightStyle = document.getElementById('light-style');
-            const darkStyle = document.getElementById('dark-style');
+            // Persist to cookie (for both guests and logged-in users) - 1 year duration
+            document.cookie = `vnoj_site_theme=${newTheme}; Max-Age=${365 * 24 * 60 * 60}; path=/; SameSite=Lax`;
 
-            if (newTheme === 'dark') {
-                if (lightStyle) lightStyle.setAttribute('media', 'none');
-                if (darkStyle) darkStyle.setAttribute('media', 'all');
-            } else {
-                if (lightStyle) lightStyle.setAttribute('media', 'all');
-                if (darkStyle) darkStyle.setAttribute('media', 'none');
+            // Persist to profile if logged in
+            if (window.user && window.user.id) {
+                $.post('{{ url('update_site_theme') }}', {
+                    theme: newTheme,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                });
             }
             
             window.dispatchEvent(new Event('theme-change'));
+        }
+
+        function toggleTheme() {
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            if (!currentTheme || currentTheme === 'auto') {
+                currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
         }
 
         window.updateAceTheme = function(editor) {
@@ -266,7 +278,7 @@
         </style>
     </noscript>
 </head>
-<body {% if request.user.is_authenticated %} data-profile-theme="{{ SITE_THEME_NAME }}" {% endif %}>
+<body>
     <!-- UI Wipe Transition Overlay -->
     <div id="ui-wipe-overlay" class="ui-wipe-overlay"></div>
     <svg width="0" height="0" style="display: block">

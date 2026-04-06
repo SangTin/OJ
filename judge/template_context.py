@@ -88,7 +88,7 @@ def site_theme(request):
     if hasattr(request.user, 'profile'):
         site_theme = request.profile.site_theme
     else:
-        site_theme = 'auto'
+        site_theme = request.COOKIES.get('vnoj_site_theme', 'auto')
 
     is_modern = getattr(request, 'vnoj_ui_version', 'classic') == 'modern'
     

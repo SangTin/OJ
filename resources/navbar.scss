@@ -406,7 +406,7 @@ nav {
     }
 }
 
-// Theme Toggle and Centralized Header Styles
+// Theme Toggle Button
 .theme-toggle-btn {
     cursor: pointer;
     font-size: 1.1em;
@@ -427,26 +427,51 @@ nav {
         transform: translateY(-1px);
     }
 
-    .theme-icon-sun { display: none; }
-    .theme-icon-moon { display: inline-block; }
-
     svg {
         width: 21px;
         height: 21px;
         stroke-width: 1.75px;
     }
+
+    .theme-icon-sun { display: none; }
+    .theme-icon-moon { display: inline-block; }
 }
 
+// Explicit Dark Mode - High Priority
 [data-theme="dark"] .theme-toggle-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
     
     &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #60a5fa;
+        background: rgba(255, 255, 255, 0.1) !important;
     }
 
-    .theme-icon-sun { display: inline-block; }
-    .theme-icon-moon { display: none; }
+    .theme-icon-sun { display: inline-block !important; }
+    .theme-icon-moon { display: none !important; }
+}
+
+// Explicit Light Mode - High Priority
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(148, 163, 184, 0.08) !important;
+    
+    &:hover {
+        background: var(--dropdown-hover) !important;
+        color: var(--accent-color) !important;
+    }
+
+    .theme-icon-sun { display: none !important; }
+    .theme-icon-moon { display: inline-block !important; }
+}
+
+// Auto Mode + System Dark
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] .theme-toggle-btn,
+    :not([data-theme]) .theme-toggle-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #60a5fa;
+
+        .theme-icon-sun { display: inline-block; }
+        .theme-icon-moon { display: none; }
+    }
 }
 
 #header, #nav-container {

@@ -100,6 +100,12 @@
                 editor.getSession().setMode("ace/mode/javascript");
             });
 
+            $('#id_site_theme').change(function () {
+                if (window.applyTheme) {
+                    window.applyTheme($(this).val());
+                }
+            });
+
             $('#disable-2fa-button').click(function () {
                 alert({{ _('The administrators for this site require all the staff to have Two-factor Authentication enabled, so it may not be disabled at this time.')|htmltojs }});
             });
