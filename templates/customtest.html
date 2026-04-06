@@ -89,6 +89,8 @@
                 });
 
                 $('#ace_source').on('ace_load', function (e, editor) {
+                    window.ace_source = editor;
+                    window.updateAceTheme(editor);
                     update_language_template();
                     editor.commands.addCommand({
                         name: 'save',

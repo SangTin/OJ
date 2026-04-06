@@ -104,6 +104,30 @@
             
             window.dispatchEvent(new Event('theme-change'));
         }
+
+        window.updateAceTheme = function(editor) {
+            if (!editor) return;
+            const aceThemePref = (window.user && window.user.ace_theme) || 'auto';
+            if (aceThemePref !== 'auto') {
+                editor.setTheme("ace/theme/" + aceThemePref);
+                return;
+            }
+
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 
+                               (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            
+            if (currentTheme === 'dark') {
+                editor.setTheme("ace/theme/twilight");
+            } else {
+                editor.setTheme("ace/theme/textmate");
+            }
+        };
+
+        window.addEventListener('theme-change', () => {
+            if (window.ace_source) {
+                window.updateAceTheme(window.ace_source);
+            }
+        });
     </script>
     {% block media %}{% endblock %}
     {% if not INLINE_JQUERY %}
@@ -206,7 +230,8 @@
         window.user = {
             email: '{{ request.user.email|escapejs }}',
             id: '{{ request.user.id|escapejs }}',
-            name: '{{ request.user.username|escapejs }}'
+            name: '{{ request.user.username|escapejs }}',
+            ace_theme: '{{ request.profile.ace_theme|escapejs if request.user.is_authenticated else "auto" }}'
         };
     </script>
     {% else %}
