@@ -82,16 +82,25 @@
                     dropdown.attr('id', 'language-select2');
                 });
 
-                $('#id_language').change(function () {
+                function updateEditorMode() {
                     var lang = $("#id_language").find("option:selected").attr('data-ace');
                     window.ace_source.getSession().setMode("ace/mode/" + lang);
                     update_language_template();
-                });
+                }
+
+                function handleLanguageChange() {
+                    updateEditorMode();
+                    on_language_change();
+                }
+
+                $('#id_language').change(handleLanguageChange);
 
                 $('#ace_source').on('ace_load', function (e, editor) {
                     window.ace_source = editor;
-                    window.updateAceTheme(editor);
-                    update_language_template();
+                    if (window.updateAceTheme) {
+                        window.updateAceTheme(editor);
+                    }
+                    updateEditorMode();
                     editor.commands.addCommand({
                         name: 'save',
                         bindKey: {win: 'Ctrl-S', mac: 'Command-S'},
@@ -220,11 +229,7 @@
                     }
                 };
 
-                $("#id_language").change( function() {
-                    on_language_change();
-                });
-
-                on_language_change();
+                handleLanguageChange();
             });
 
             // https://stackoverflow.com/questions/43043113/how-to-force-reloading-a-page-when-using-browser-back-button#comment105570384_43043658
