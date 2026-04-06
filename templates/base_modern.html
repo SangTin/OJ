@@ -65,11 +65,6 @@
     <link rel="canonical"
         href="{{ DMOJ_SCHEME }}://{{ DMOJ_CANONICAL|default(site.domain) }}{{ request.get_full_path() }}">
     {% if request.user.is_impersonate %}
-    <style>
-        #nav-container {
-            background: #893e89 !important;
-        }
-    </style>
     {% endif %}
 
     <script>
@@ -257,7 +252,7 @@
         </defs>
     </svg>
     <nav id="navigation" class="unselectable">
-        <div id="nav-container">
+        <div id="nav-container"{% if request.user.is_impersonate %} class="is-impersonating"{% endif %}>
             <div id="nav-left">
                 <a id="navicon" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
                 {% if request.organization is not defined %}
