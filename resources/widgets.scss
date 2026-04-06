@@ -29,36 +29,40 @@
     cursor: pointer;
     vertical-align: middle;
     white-space: nowrap;
-    font-weight: 400;
-    line-height: 1.4;
-    background: rgb(51, 122, 183) none repeat scroll 0 (0% / auto) padding-box border-box;
-    background: -webkit-linear-gradient(top, #337ab7 0, #265a88 100%) repeat-x;
-    background: linear-gradient(to bottom, #337ab7 0, #265a88 100%) repeat-x;
+    font-weight: 500;
+    line-height: 1.5;
+    background: linear-gradient(135deg, $color_link75 0%, $color_link100 100%);
     border-radius: $widget_border_radius;
-    padding: 6px 12px;
-    display: block;
+    padding: 8px 16px;
+    display: inline-block;
     border: 0;
     text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     // 4k hack
     font-size: $base_font_size;
 
     &:hover {
-        background: #265a88;
+        background: linear-gradient(135deg, $color_link100 0%, $color_link50 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
 
     &:active {
-        border-color: #245580;
-        background: #265a88;
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
     }
 
     &.full {
-        padding: 6px 0;
+        padding: 8px 0;
+        display: block;
     }
 
     &.disabled {
-        background: linear-gradient(to bottom, darkgray 0, gray 100%) repeat-x !important;
-        border-color: grey !important;
+        background: $color_primary33 !important;
+        box-shadow: none !important;
+        transform: none !important;
         cursor: not-allowed;
     }
 }
@@ -255,7 +259,10 @@ ul.pagination a:hover {
 }
 
 ul.pagination {
-    display: inline-block;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
     padding-left: 0;
     margin: 0;
 
@@ -264,7 +271,7 @@ ul.pagination {
             display: inline;
 
             &:first-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     margin-left: 0;
                     border-top-left-radius: $widget_border_radius;
                     border-bottom-left-radius: $widget_border_radius;
@@ -272,14 +279,14 @@ ul.pagination {
             }
 
             &:last-child > {
-                a, span {
+                a, span, input.pagination-page-input {
                     border-top-right-radius: $widget_border_radius;
                     border-bottom-right-radius: $widget_border_radius;
                 }
             }
 
             > {
-                a, span {
+                a, span, input.pagination-page-input {
                     position: relative;
                     float: left;
                     padding: 4px 12px;
@@ -315,11 +322,95 @@ ul.pagination {
     margin: 11px 0 7px;
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.75em;
+
+    ul.pagination {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    #search-form {
+        flex-shrink: 0;
+    }
 }
 
 .bottom-pagination-bar {
     margin-top: 10px;
+
+    ul.pagination {
+        justify-content: center;
+    }
+
+    @media (max-width: 600px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5em;
+    }
+}
+
+// Page jump input inside the "..." ellipsis cell
+li.page-jump-input {
+    display: inline;
+    padding: 0;
+
+    .pagination-page-input {
+        width: 2.5em;
+        padding: 4px 0;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        text-align: center;
+        border-radius: 0;
+        cursor: text;
+        appearance: none;
+
+        &::placeholder {
+            color: $color_primary50;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        &:focus {
+            outline: none;
+            background-color: $highlight_blue;
+            border-color: $highlight_blue;
+            color: $color_primary0;
+        }
+
+        /* Remove spinner arrows */
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        -moz-appearance: textfield;
+    }
+
+    &:first-child .pagination-page-input {
+        border-top-left-radius: $widget_border_radius;
+        border-bottom-left-radius: $widget_border_radius;
+    }
+}
+
+.top-pagination-bar {
+    // Stack on very narrow screens
+    @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5em;
+
+        ul.pagination {
+            justify-content: center;
+        }
+    }
+}
+
+// Legacy page-jump element removal
+.page-jump {
+    display: none;
 }
 
 .alert {
@@ -412,17 +503,18 @@ a.close {
 
 .sidebox h3 {
     margin: 0 -5px;
-    background: $color_primary75;
-    border-radius: $widget_border_radius $widget_border_radius 0 0;
-    color: $color_primary0;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 7px;
+    background: transparent;
+    border-bottom: 2px solid $color_primary10;
+    color: $color_primary100;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
     font-size: 1.3em;
+    font-weight: 600;
 }
 
 .sidebox h3 .fa {
-    color: $color_primary0;
+    color: $color_primary75;
     float: right;
     margin: 0.2em 0.4em 0 0;
 }
@@ -444,10 +536,12 @@ a.close {
 }
 
 .sidebox {
-    border-top-left-radius: $widget_border_radius;
-    border-top-right-radius: $widget_border_radius;
-    padding: 0 5px !important;
+    background: $color_primary0;
+    border-radius: $widget_border_radius;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 5px 15px !important;
     padding-bottom: 1.5em !important;
+    border: 1px solid rgba($color_primary25, 0.5);
 }
 
 .ws-closed {

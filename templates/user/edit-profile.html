@@ -96,7 +96,14 @@
     <script type="text/javascript">
         $(function () {
             $('#ace_user_script').on('ace_load', function (e, editor) {
+                window.updateAceTheme(editor);
                 editor.getSession().setMode("ace/mode/javascript");
+            });
+
+            $('#id_site_theme').change(function () {
+                if (window.applyTheme) {
+                    window.applyTheme($(this).val());
+                }
             });
 
             $('#disable-2fa-button').click(function () {

@@ -31,7 +31,8 @@ from judge.utils.lazy import memo_lazy
 from judge.utils.problem_data import get_problem_testcases_data
 from judge.utils.problems import get_result_data, user_completed_ids, user_editable_ids, user_tester_ids
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
-from judge.utils.views import DiggPaginatorMixin, TitleMixin, add_file_response, generic_message
+from judge.utils.views import DiggPaginatorMixin, TitleMixin, add_file_response, generic_message, \
+    sanitize_pagination_query
 
 
 def submission_related(queryset):
@@ -477,7 +478,8 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         context['results_json'] = mark_safe(json.dumps(self.get_result_data()))
         context['results_colors_json'] = mark_safe(json.dumps(settings.DMOJ_STATS_SUBMISSION_RESULT_COLORS))
 
-        context['page_suffix'] = suffix = ('?' + self.request.GET.urlencode()) if self.request.GET else ''
+        clean_query = sanitize_pagination_query(self.request.GET)
+        context['page_suffix'] = suffix = ('?' + clean_query.urlencode()) if clean_query else ''
         context['first_page_href'] = (self.first_page_href or '.') + suffix
         context['my_submissions_link'] = self.get_my_submissions_page()
         context['all_submissions_link'] = self.get_all_submissions_page()

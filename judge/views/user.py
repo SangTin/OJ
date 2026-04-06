@@ -562,6 +562,18 @@ def generate_scratch_codes(request):
         revisions.set_comment(_('Generated scratch codes for user'))
     return JsonResponse({'data': {'codes': profile.generate_scratch_codes()}})
 
+@require_POST
+@login_required
+def update_site_theme(request):
+    theme = request.POST.get('theme')
+    if theme not in ('light', 'dark', 'auto'):
+        return JsonResponse({'error': 'Invalid theme'}, status=400)
+    
+    profile = request.profile
+    profile.site_theme = theme
+    profile.save(update_fields=['site_theme'])
+    return JsonResponse({'status': 'ok'})
+
 
 class UserList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin, TitleMixin, ListView):
     model = Profile

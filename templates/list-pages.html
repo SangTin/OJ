@@ -11,7 +11,9 @@
 
     {% for page in page_obj.page_range %}
         {% if not page %}
-            <li class="disabled-page"><span>...</span></li>
+            <li class="page-jump-input">
+                <input type="number" min="1"{% if page_obj.trailing_page != None %} max="{{ page_obj.trailing_page }}"{% endif %} class="pagination-page-input" placeholder="..." id="page-jump-{{ loop.index }}">
+            </li>
         {% else %}
             <li{% if page == page_obj.number %} class="active-page"{% endif %}><a href="
                 {%- if page == 1 and first_page_href != None -%}
@@ -29,3 +31,67 @@
         <li class="disabled-page"><span>»</span></li>
     {% endif %}
 </ul>
+<script>
+    (function () {
+        if (window.__paginationJumpInit) {
+            return;
+        }
+        window.__paginationJumpInit = true;
+
+        var pagePrefix = '{{ page_prefix|default("")|escapejs }}';
+        var pageSuffix = '{{ page_suffix|default("")|escapejs }}';
+        var firstPageHref = {% if first_page_href != None %}'{{ first_page_href|escapejs }}'{% else %}null{% endif %};
+        var isJumping = false;
+
+        function withJumpParams(url) {
+            var target = new URL(url, window.location.href);
+            target.searchParams.set('fallback_url', window.location.pathname + window.location.search);
+            return target.toString();
+        }
+
+        function clearJumpParams() {
+            var target = new URL(window.location.href);
+            var hasInvalidJump = target.searchParams.has('page_jump_invalid');
+            var hasFallbackUrl = target.searchParams.has('fallback_url');
+            if (!hasInvalidJump && !hasFallbackUrl) {
+                return;
+            }
+
+            target.searchParams.delete('page_jump_invalid');
+            target.searchParams.delete('fallback_url');
+            window.history.replaceState({}, document.title, target.pathname + target.search + target.hash);
+            if (hasInvalidJump) {
+                alert({{ _('Page not found. You have been returned to the current page.')|htmltojs }});
+            }
+        }
+
+        function jumpToPage(input) {
+            if (isJumping) {
+                return;
+            }
+
+            var p = parseInt(input.value);
+            if (!p || p < 1) return;
+            var max = parseInt(input.max);
+            if (max && p > max) {
+                p = max;
+                input.value = p;
+            }
+            isJumping = true;
+            var url = p === 1 && firstPageHref !== null ? firstPageHref : pagePrefix + p + pageSuffix;
+            window.location.href = withJumpParams(url);
+        }
+
+        clearJumpParams();
+
+        var inputs = document.querySelectorAll('.pagination-page-input');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); jumpToPage(this); }
+            });
+            inputs[i].addEventListener('blur', function () {
+                if (this.value) { jumpToPage(this); }
+            });
+        }
+    })();
+</script>

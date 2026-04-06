@@ -86,6 +86,7 @@ register_patterns = [
 
     path('api/token/generate/', user.generate_api_token, name='generate_api_token'),
     path('api/token/remove/', user.remove_api_token, name='remove_api_token'),
+    path('api/theme/update/', user.update_site_theme, name='update_site_theme'),
 ]
 
 
