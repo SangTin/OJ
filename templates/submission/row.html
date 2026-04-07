@@ -52,7 +52,7 @@
         <div class="sub-prop"><div>
             <a href="{{ url('submission_status', submission.id) }}">
                 <i class="fa fa-eye fa-fw"></i><span class="label">{{ _('view') }}</span>
-            </a> ·
+            </a>
             {% if not submission.language.file_only %}
                 <a href="{{ url('submission_source', submission.id) }}">
                     <i class="fa fa-file-code-o fa-fw"></i><span class="label">{{ _('source') }}</span>
@@ -62,26 +62,25 @@
                     <i class="fa fa-download fa-fw"></i><span class="label">{{ _('download') }}</span>
                 </a>
             {% endif %}
-            {% if perms.judge.rejudge_submission and can_edit %} ·
+            {% if perms.judge.rejudge_submission and can_edit %}
                 {% if not submission.is_locked %}
                     <a href="#" onclick="rejudge_submission({{ submission.id }}, event);return false">
                         <i class="fa fa-refresh fa-fw"></i><span class="label">{{ _('rejudge') }}</span>
                     </a>
                 {% else %}
-                    <i class="fa fa-refresh fa-fw grey-icon"></i>
-                    <span class="label grey-label"
-                          title="{{ _('This submission has been locked, and cannot be rejudged.') }}">
-                        {{ _('locked') }}
+                    <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: 0.82em; opacity: 0.6;" title="{{ _('This submission has been locked, and cannot be rejudged.') }}">
+                        <i class="fa fa-lock fa-fw"></i>
+                        <span class="label grey-label">{{ _('locked') }}</span>
                     </span>
                 {% endif %}
             {% endif %}
             {% if can_edit %}
-                {% if not submission.language.file_only %} ·
+                {% if not submission.language.file_only %}
                     <a href="{{ url('problem_submission_diff', submission.problem.code) }}?username={{ submission.user.user.username }}&highlight={{ submission.id }}">
                         <i class="fa fa-files-o fa-fw"></i><span class="label">{{ _('diff') }}</span>
                     </a>
                 {% endif %}
-                {% if request.user.is_superuser %} ·
+                {% if request.user.is_superuser %}
                     <a href="{{ url('admin:judge_submission_change', submission.id) }}">
                         <i class="fa fa-cog fa-fw"></i><span class="label">{{ _('admin') }}</span>
                     </a>

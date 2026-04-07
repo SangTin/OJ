@@ -383,9 +383,7 @@
                             <ul class="user-dropdown-menu">
                                 <li class="user-dropdown-header">
                                     <div class="user-info">
-                                        <div class="user-name">{{ request.profile.display_name or request.user.username
-                                            }}
-                                        </div>
+                                        <div class="user-name">{{ request.user.first_name or request.user.username }}</div>
                                         <div class="user-handle">@{{ request.user.username }}</div>
                                     </div>
                                 </li>

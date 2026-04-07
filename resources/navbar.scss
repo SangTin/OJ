@@ -22,17 +22,26 @@ nav {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
     &.is-impersonating {
-        background: rgba(79, 70, 229, 0.95) !important;
+        background: #4f46e5 !important; // Indigo-600
         backdrop-filter: blur(14px) saturate(190%) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
 
-        * { color: rgba(255, 255, 255, 0.95) !important; }
+        // Target only top-level nav elements to avoid white-on-white in dropdowns
+        #nav-list > li > a,
+        #nav-list > li > button,
+        #nav-left #navicon,
+        #user-links .nav-tool-btn,
+        #user-links .theme-toggle-btn,
+        .user-avatar-btn {
+            color: rgba(255, 255, 255, 0.95) !important;
+        }
 
         .nav-logo img { filter: brightness(0) invert(1) !important; }
 
         .nav-tool-btn, .theme-toggle-btn {
             background: rgba(255, 255, 255, 0.1) !important;
+            &:hover { background: rgba(255, 255, 255, 0.2) !important; }
         }
 
         #nav-list li > a:hover,
