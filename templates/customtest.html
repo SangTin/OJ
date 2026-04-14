@@ -146,7 +146,7 @@
                     } else {
                         let $form = $(this);
 
-                        $('#loading').show();
+                        $('#loading').css('display', 'inline-block');
                         $('#code_output').text('');
                         $('#run_status').hide();
                         $('#run_info').hide();
@@ -271,10 +271,10 @@
                 <div class="info-data" contenteditable="false" style="padding:8px;">
                     <pre id="code_output"></pre>
                     <div>
-                        <span id="run_status" hidden></span>
-                        <span id="run_info" style="color:#777;" hidden></span>
+                        <span id="run_status" style="display:none;"></span>
+                        <span id="run_info" class="text-muted" style="display:none;"></span>
                     </div>
-                    <pre id="run_error" hidden></pre>
+                    <pre id="run_error" style="display:none;"></pre>
                 </div>
             </div>
         </div>
@@ -297,7 +297,7 @@
                 </div>
                 <hr>
                 <div id="editor">
-                    <ul class="errorlist" id="source_errors" hidden>
+                    <ul class="errorlist" id="source_errors" style="display:none;">
                     </ul>
                     {{ form.source }}
                 </div>
@@ -305,7 +305,7 @@
 
             <hr>
             <div class="submit-bar">
-                <div id="loading" class="loader" hidden></div>
+                <div id="loading" class="loader" style="display:none;"></div>
                 <input type="submit" value="{{ _('Run Code') }}" class="button">
             </div>
         </div>  
