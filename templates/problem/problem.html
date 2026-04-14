@@ -114,6 +114,36 @@
             margin-top: 10px;
         }
         {% endif %}
+
+        .run-code-pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-height: 150px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .run-detail-table { width: 100%; border-collapse: collapse; }
+        .run-detail-table td { padding: 4px 0; vertical-align: top; }
+        .run-label { width: 65px; font-size: 0.8em; font-weight: 600; color: #64748b; padding-right: 8px !important; }
+        .run-match { color: #22c55e; font-weight: 600; }
+        .run-mismatch { color: #ef4444; font-weight: 600; }
+        .run-tab {
+            display: inline-block;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .run-tab:hover { background: #eef2ff; }
+        .run-tab.active { background: #e0e7ff; border-color: #818cf8; font-weight: 600; }
     </style>
 {% endblock %}
 
@@ -163,6 +193,166 @@
             if (hash && $(hash).length) {
                 $('.problem-tabs a[href="' + hash + '"]').click();
             }
+
+            {% if request.user.is_authenticated and form %}
+            // Run Code functionality
+            var runCodeUrl = '{{ url("problem_run_code", problem.code) }}';
+            var csrfToken = '{{ csrf_token }}';
+            var testResults = [];
+            var lastRunTime = 0;
+            var RUN_COOLDOWN = 5000;
+
+            function getSourceCode() {
+                if (window.ace_source) return window.ace_source.getValue();
+                return $('#id_source').val() || '';
+            }
+
+            function showInlineMsg(text, color) {
+                var $msg = $('#run-inline-msg');
+                $msg.text(text).css('color', color || '#64748b').show();
+                setTimeout(function() { $msg.fadeOut(); }, 3000);
+            }
+
+            function showTestDetail(idx) {
+                var r = testResults[idx];
+                if (!r) return;
+
+                $('#run-test-tabs .run-tab').removeClass('active');
+                $('#run-test-tabs .run-tab').eq(idx).addClass('active');
+
+                $('#run-input-display').text(r.input || '(empty)');
+                $('#run-stdout-display').text(r.stdout || '(empty)');
+
+                var $status = $('#run-status-line');
+                var statusId = (r.status || {}).id;
+                var statusDesc = (r.status || {}).description || '';
+                var parts = [];
+                if (r.time) parts.push(r.time + 's');
+                if (r.memory) parts.push(r.memory + 'KB');
+                var timing = parts.join(', ');
+
+                if (statusId === 3) {
+                    $status.html('<span class="run-match"><i class="fa fa-check"></i> ' + statusDesc + '</span> ' + timing);
+                } else if (statusId > 3) {
+                    $status.html('<span class="run-mismatch"><i class="fa fa-times"></i> ' + statusDesc + '</span> ' + timing);
+                } else {
+                    $status.text(timing || statusDesc);
+                }
+
+                var $compileErr = $('#run-compile-error');
+                if (r.compile_output) {
+                    $('#run-compile-display').text(r.compile_output);
+                    $compileErr.css('display', 'table-row');
+                } else {
+                    $compileErr.hide();
+                }
+            }
+
+            function buildResultsUI(isSample) {
+                var $tabs = $('#run-test-tabs').empty();
+                var passed = 0, total = testResults.length;
+
+                for (var i = 0; i < total; i++) {
+                    var r = testResults[i];
+                    var statusId = (r.status || {}).id;
+                    var isPass = statusId === 3;
+                    if (isPass) passed++;
+
+                    var icon = isSample
+                        ? (isPass ? '<i class="fa fa-check" style="color:#22c55e"></i>'
+                                  : '<i class="fa fa-times" style="color:#ef4444"></i>')
+                        : '<i class="fa fa-minus" style="color:#94a3b8"></i>';
+
+                    var $tab = $('<div class="run-tab">' + icon + ' #' + (i + 1) + '</div>');
+                    (function(idx) { $tab.click(function() { showTestDetail(idx); }); })(i);
+                    $tabs.append($tab);
+                }
+
+                var headerHtml;
+                if (!isSample) {
+                    headerHtml = '<i class="fa fa-check-circle" style="color:#3b82f6"></i> ' + {{ _('Run complete')|htmltojs }};
+                } else if (passed === total) {
+                    headerHtml = '<span class="run-match"><i class="fa fa-check-circle"></i> ' + passed + '/' + total + ' ' + {{ _('passed')|htmltojs }} + '</span>';
+                } else {
+                    headerHtml = '<span class="run-mismatch"><i class="fa fa-times-circle"></i> ' + (total - passed) + '/' + total + ' ' + {{ _('failed')|htmltojs }} + '</span>';
+                }
+                $('#run-results-header').html(headerHtml);
+
+                showTestDetail(0);
+                $('#run-test-tabs .run-tab').eq(0).addClass('active');
+                $('#run-code-results').show();
+            }
+
+            $('#use-custom-input').change(function() {
+                $('#run-custom-input-area').toggle(this.checked);
+            });
+
+            function runRequest(postData, isSample, $btn) {
+                $('#run-code-output').show();
+                $('#run-code-loading').show();
+                $('#run-error-msg').hide();
+                $('#run-no-sample-msg').hide();
+
+                $.ajax({
+                    type: 'POST',
+                    url: runCodeUrl,
+                    data: postData,
+                    dataType: 'json',
+                    success: function(resp) {
+                        $('#run-code-loading').hide();
+                        if (resp.no_samples) {
+                            $('#use-custom-input').prop('checked', true).trigger('change');
+                            $('#run-no-sample-msg').show();
+                        } else {
+                            testResults = resp.results || [];
+                            buildResultsUI(isSample);
+                        }
+                        $btn.prop('disabled', false);
+                    },
+                    error: function(xhr) {
+                        $('#run-code-loading').hide();
+                        var msg;
+                        try { msg = JSON.parse(xhr.responseText).error; } catch(e) {}
+                        showInlineMsg(msg || {{ _('Failed to run code. Please try again.')|htmltojs }}, '#ef4444');
+                        $btn.prop('disabled', false);
+                    }
+                });
+            }
+
+            $('#run-code-btn').click(function() {
+                var $btn = $(this);
+                var source = getSourceCode();
+                if (!source.trim()) {
+                    showInlineMsg({{ _('Please enter your source code first.')|htmltojs }}, '#ef4444');
+                    return;
+                }
+
+                var now = Date.now();
+                if (now - lastRunTime < RUN_COOLDOWN) {
+                    var wait = Math.ceil((RUN_COOLDOWN - (now - lastRunTime)) / 1000);
+                    showInlineMsg({{ _('Please wait')|htmltojs }} + ' ' + wait + 's', '#d97706');
+                    return;
+                }
+                lastRunTime = now;
+                $btn.prop('disabled', true);
+                $('#run-inline-msg').hide();
+
+                var postData = {
+                    source: source,
+                    language: $('#id_language').val(),
+                    csrfmiddlewaretoken: csrfToken
+                };
+
+                if ($('#use-custom-input').is(':checked')) {
+                    postData.mode = 'custom';
+                    postData.input = $('#run-custom-input').val();
+                    runRequest(postData, false, $btn);
+                } else {
+                    postData.mode = 'sample';
+                    runRequest(postData, true, $btn);
+                }
+            });
+            {% endif %}
         });
     </script>
 {% endblock %}
