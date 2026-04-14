@@ -4925,7 +4925,7 @@ msgstr ""
 
 #: templates/base.html:366
 #, python-format
-msgid "follow us on %(github)s and %(facebook)s"
+msgid "follow us on %(github)s"
 msgstr ""
 
 #: templates/base.html:365
