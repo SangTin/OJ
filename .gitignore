@@ -54,3 +54,4 @@ sass_processed_classic/
 .claude
 AGENTS.md
 CLAUDE.md
+*.env
