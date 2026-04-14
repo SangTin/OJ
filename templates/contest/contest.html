@@ -196,6 +196,7 @@
             {% if can_edit and can_download_data %}
                 <a class="button" style="float:right" href="{{ url('contest_prepare_data', contest.key) }}">{{ _('Download data') }}</a>
             {% endif %}
+            <div class="h-scrollable-table table-responsive">
             <table class="table striped">
                 <thead>
                 <tr>
@@ -268,6 +269,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
             {% if can_view_all_problems %}
             <a class="button" style="width: fit-content" href="{{ url('contest_all_problems', contest.key) }}">{{ _('All problems') }}</a>
             {% endif %}
@@ -275,6 +277,7 @@
         {% if has_announcements or can_edit %}
         <div class="contest-clartifications">
             <h2 style="margin-bottom: 0.2em"><i class="fa fa-check"></i> {{ _('Announcements') }}</h2>
+            <div class="h-scrollable-table table-responsive">
             <table id="contest-clartifications" class="table">
                 <thead>
                     <tr>
@@ -304,11 +307,13 @@
                 {% endif %}
                 </tbody>
             </table>
+            </div>
         </div>
         {% endif %}
         {% if has_clarifications %}
         <div class="contest-clartifications">
             <h2 style="margin-bottom: 0.2em"><i class="fa fa-check"></i> {{ _('Clarifications') }}</h2>
+            <div class="h-scrollable-table table-responsive">
             <table id="contest-clartifications" class="table">
                 <thead>
                     <tr>
@@ -334,6 +339,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
         {% endif %}
     {% endif %}

@@ -87,15 +87,26 @@ def site_theme(request):
     # Middleware populating `profile` may not have loaded at this point if we're called from an error context.
     if hasattr(request.user, 'profile'):
         site_theme = request.profile.site_theme
-        preferred_css = settings.DMOJ_THEME_CSS.get(site_theme)
     else:
-        site_theme = 'auto'
-        preferred_css = None
+        site_theme = request.COOKIES.get('vnoj_site_theme', 'auto')
+
+    is_modern = getattr(request, 'vnoj_ui_version', 'classic') == 'modern'
+    
+    if is_modern:
+        dark_css = settings.DMOJ_THEME_CSS['dark']
+        light_css = settings.DMOJ_THEME_CSS['light']
+        preferred_css = settings.DMOJ_THEME_CSS.get(site_theme) if site_theme != 'auto' else None
+    else:
+        dark_css = 'classic/dark/style.css'
+        light_css = 'classic/style.css'
+        preferred_css = dark_css if site_theme == 'dark' else light_css if site_theme == 'light' else None
+
     return {
-        'DARK_STYLE_CSS': settings.DMOJ_THEME_CSS['dark'],
-        'LIGHT_STYLE_CSS': settings.DMOJ_THEME_CSS['light'],
+        'DARK_STYLE_CSS': dark_css,
+        'LIGHT_STYLE_CSS': light_css,
         'PREFERRED_STYLE_CSS': preferred_css,
         'SITE_THEME_NAME': site_theme,
+        'IS_MODERN_UI': is_modern,
     }
 
 

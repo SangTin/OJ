@@ -111,26 +111,43 @@
                     type: 'pie',
                     data: {
                         datasets: [{
-                            data: raw_data.categories.map(function(entry) {
+                            data: raw_data.categories.map(function (entry) {
                                 return entry.count;
                             }),
-                            backgroundColor: raw_data.categories.map(function(entry) {
+                            backgroundColor: raw_data.categories.map(function (entry) {
                                 return colors[entry.code];
                             }),
+                            borderColor: '#ffffff',
+                            borderWidth: 2.5,
+                            hoverBorderWidth: 4,
+                            hoverBorderColor: '#ffffff',
                         }],
-                        labels: raw_data.categories.map(function(entry) {
+                        labels: raw_data.categories.map(function (entry) {
                             return entry.name;
                         }),
                     },
                     options: {
-                        animation: false,
-                        scaleFontFamily: font,
-                        tooltips: {
-                            titleFontFamily: font,
-                            bodyFontFamily: font,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeOutQuart'
                         },
                         legend: {
                             display: false,
+                        },
+                        tooltips: {
+                            backgroundColor: 'rgba(23, 45, 62, 0.9)',
+                            titleFontFamily: font,
+                            titleFontSize: 14,
+                            titleFontWeight: 'bold',
+                            bodyFontFamily: font,
+                            bodyFontSize: 13,
+                            bodySpacing: 4,
+                            xPadding: 12,
+                            yPadding: 12,
+                            cornerRadius: 8,
+                            displayColors: true,
                         },
                     },
                 });

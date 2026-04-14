@@ -92,6 +92,10 @@
             });
 
             $('#ace_source').on('ace_load', function (e, editor) {
+                window.ace_source = editor;
+                if (window.updateAceTheme) {
+                    window.updateAceTheme(editor);
+                }
                 update_language_template();
                 editor.commands.addCommand({
                     name: 'save',

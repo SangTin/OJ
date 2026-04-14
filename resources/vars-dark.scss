@@ -2,23 +2,23 @@
 
 $is_light_theme: false;
 
-$color_primary0: #0f0f0f;
-$color_primary5: #111;      // light background
-$color_primary10: #181818;  // background
-$color_primary25: #3b3b3b;  // border
-$color_primary33: #555;     // widget
-$color_primary50: #808080;
-$color_primary66: #aaa;     // tabs
-$color_primary75: #ccc;     // widget
-$color_primary90: #eee;
-$color_primary100: #f8f8f8;
+$color_primary0: #020617;
+$color_primary5: #0f172a;      // light background
+$color_primary10: #1e293b;  // background
+$color_primary25: #334155;  // border
+$color_primary33: #475569;     // widget
+$color_primary50: #64748b;
+$color_primary66: #94a3b8;     // tabs
+$color_primary75: #cbd5e1;     // widget
+$color_primary90: #e2e8f0;
+$color_primary100: #f8fafc;
 
-$color_link50: #06d;    // default (title)
-$color_link75: #6bf;    // default
-$color_link100: #49e;   // hover
-$color_link200: #d83;   // active
+$color_link50: #6366f1;    // default (title)
+$color_link75: #818cf8;    // default
+$color_link100: #a5b4fc;   // hover
+$color_link200: #fb923c;   // active
 
-$color_pageBg: #222;    // #222 because some elements should be darker than pageBg
+$color_pageBg: #020617;    // #222 because some elements should be darker than pageBg
 
 // custom one-off colours
 $color_contest_ranking_disqualified: #622;
@@ -87,4 +87,18 @@ $path_to_root: '..';    // relative path from style.css to STATIC_ROOT
 
 @mixin vars-img {
     filter: invert(1) hue-rotate(180deg);
+}
+
+:root {
+    --header-bg: rgba(15, 23, 42, 0.7);
+    --header-border: rgba(30, 41, 59, 0.8);
+    --dropdown-bg: #1e293b;
+    --dropdown-border: rgba(255, 255, 255, 0.1);
+    --dropdown-hover: rgba(255, 255, 255, 0.05);
+    --footer-bg: #0f172a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --bg-glass: rgba(15, 23, 42, 0.5);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --accent-color: #60a5fa;
 }

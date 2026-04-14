@@ -1,10 +1,12 @@
 import base64
+import logging
+
 from django.conf import settings
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 from django.views.generic.base import View, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 
 import judge0
@@ -13,25 +15,10 @@ from judge.models import Language
 from judge.models.runtime import CustomTestHistory
 from judge.utils.views import TitleMixin
 
-# TODO: once this is working, remove the UserPassesTestMixin
-class CustomTestView(LoginRequiredMixin, UserPassesTestMixin, TitleMixin, TemplateView):
-    raise_exception = True
+logger = logging.getLogger(__name__)
+
+class CustomTestView(LoginRequiredMixin, TitleMixin, TemplateView):
     template_name = "customtest.html"
-
-    def test_func(self):
-        return self.request.user.has_perm('judge.test_site')
-
-    def handle_no_permission(self):
-        from django.template.response import TemplateResponse
-        return TemplateResponse(
-            self.request,
-            'coming_soon.html',
-            context={
-                'title': _("Custom Test"),
-                'message': _('This feature is coming soon! Stay tuned for updates.')
-            },
-            status=403
-        )
     
     def get_content_title(self):
         return _("Custom Test")
@@ -73,7 +60,7 @@ class CustomTestRunView(LoginRequiredMixin, View):
 
             client = judge0.Client(
                 endpoint=settings.JUDGE0_API_URL,
-                auth_headers={"X-Auth-Token": "your_token"},
+                auth_headers={"X-Auth-Token": settings.JUDGE0_AUTH_TOKEN},
             )
             response = judge0.run(
                 client=client,
@@ -83,7 +70,7 @@ class CustomTestRunView(LoginRequiredMixin, View):
             )
             return response
         except Exception as e:
-            print("Error occurred while calling Judge0 API:", e)
+            logger.error("Error occurred while calling Judge0 API: %s", e)
             return None
 
     def post(self, request, *args, **kwargs):

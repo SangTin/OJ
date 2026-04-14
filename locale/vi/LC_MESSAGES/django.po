@@ -5082,8 +5082,8 @@ msgstr "Trang web này hoạt động tốt nhất khi JavaScript được cho p
 
 #: templates/base.html:366
 #, python-format
-msgid "follow us on %(github)s and %(facebook)s"
-msgstr "theo dõi VNOI trên %(github)s và %(facebook)s"
+msgid "follow us on %(github)s"
+msgstr "theo dõi VNOI trên %(github)s"
 
 #: templates/base.html:365
 #, python-format
@@ -7700,105 +7700,103 @@ msgstr "Số bài"
 msgid "Check all"
 msgstr "Chọn tất cả"
 
-#~ msgid "Rate all users who joined."
-#~ msgstr ""
-#~ "Tính rating tất cả những người đã tham gia kỳ thi (kể cả không nộp bài "
-#~ "nào)."
+msgid "Rate all users who joined."
+msgstr "Tính rating tất cả những người đã tham gia kỳ thi (kể cả không nộp bài nào)."
 
 #, python-format
-#~ msgid "Hello, %(username)s."
-#~ msgstr "Xin chào, %(username)s."
+msgid "Hello, %(username)s."
+msgstr "Xin chào, %(username)s."
 
-#~ msgid "Newsfeed"
-#~ msgstr "Tin tức"
+msgid "Newsfeed"
+msgstr "Tin tức"
 
-#~ msgid "Blogs"
-#~ msgstr "Blog"
+msgid "Blogs"
+msgstr "Blog"
 
 #, python-brace-format
-#~ msgid "o{time}"
-#~ msgstr "o{time}"
+msgid "o{time}"
+msgstr "o{time}"
 
 #, python-format
 #~ msgid "posted on %(time)s"
 #~ msgstr "đã đăng vào %(time)s"
 
-#~ msgid "Please read the [guidelines][0] before creating a new blog post."
-#~ msgstr "Hãy đọc [nội quy blog][0] trước khi tạo blog mới."
+msgid "Please read the [guidelines][0] before creating a new blog post."
+msgstr "Hãy đọc [nội quy blog][0] trước khi tạo blog mới."
 
 #, python-format
-#~ msgid "Ends in %(countdown)s."
-#~ msgstr "Kết thúc trong %(countdown)s."
+msgid "Ends in %(countdown)s."
+msgstr "Kết thúc trong %(countdown)s."
 
 #, python-format
-#~ msgid "Starting in %(countdown)s."
-#~ msgstr "Bắt đầu trong %(countdown)s."
+msgid "Starting in %(countdown)s."
+msgstr "Bắt đầu trong %(countdown)s."
 
-#~ msgid "Please read the [guidelines][0] before commenting."
-#~ msgstr "Hãy đọc [nội quy][0] trước khi bình luận."
+msgid "Please read the [guidelines][0] before commenting."
+msgstr "Hãy đọc [nội quy][0] trước khi bình luận."
 
 #, python-format
 #~ msgid "edit %(edits)s"
 #~ msgstr "sửa %(edits)s"
 
-#~ msgid "Add new contest"
-#~ msgstr "Thêm kỳ thi"
+msgid "Add new contest"
+msgstr "Thêm kỳ thi"
 
-#~ msgid "List"
-#~ msgstr "Danh sách"
+msgid "List"
+msgstr "Danh sách"
 
-#~ msgid "Calendar"
-#~ msgstr "Lịch"
+msgid "Calendar"
+msgstr "Lịch"
 
-#~ msgid "Info"
-#~ msgstr "Thông tin"
+msgid "Info"
+msgstr "Thông tin"
 
-#~ msgid "Rankings"
-#~ msgstr "Bảng xếp hạng"
+msgid "Rankings"
+msgstr "Bảng xếp hạng"
 
-#~ msgid "Official Rankings"
-#~ msgstr "Bảng xếp hạng chính thức"
+msgid "Official Rankings"
+msgstr "Bảng xếp hạng chính thức"
 
-#~ msgid "Clone"
-#~ msgstr "Nhân bản"
+msgid "Clone"
+msgstr "Nhân bản"
 
-#~ msgid "Stop spectating"
-#~ msgstr "Ngừng theo dõi"
-
-#, python-format
-#~ msgid "Spectating, contest ends in %(countdown)s."
-#~ msgstr "Đang theo dõi, kỳ thi sẽ kết thúc trong %(countdown)s."
+msgid "Stop spectating"
+msgstr "Ngừng theo dõi"
 
 #, python-format
-#~ msgid "Participating virtually, %(countdown)s remaining."
-#~ msgstr "Đang tham gia ảo, còn lại %(countdown)s thời gian."
-
-#~ msgid "Participating virtually."
-#~ msgstr "Đang tham gia ảo"
-
-#~ msgid "Contest is over."
-#~ msgstr "Kỳ thi đã kết thúc."
+msgid "Spectating, contest ends in %(countdown)s."
+msgstr "Đang theo dõi, kỳ thi sẽ kết thúc trong %(countdown)s."
 
 #, python-format
-#~ msgid "Your time is up! Contest ends in %(countdown)s."
-#~ msgstr ""
-#~ "Thời gian làm bài của bạn đã hết! Kỳ thi sẽ kết thúc sau %(countdown)s."
+msgid "Participating virtually, %(countdown)s remaining."
+msgstr "Đang tham gia ảo, còn lại %(countdown)s thời gian."
+
+msgid "Participating virtually."
+msgstr "Đang tham gia ảo"
+
+msgid "Contest is over."
+msgstr "Kỳ thi đã kết thúc."
 
 #, python-format
-#~ msgid "You have %(countdown)s remaining."
-#~ msgstr "Bạn còn lại %(countdown)s thời gian."
+msgid "Your time is up! Contest ends in %(countdown)s."
+msgstr ""
+"Thời gian làm bài của bạn đã hết! Kỳ thi sẽ kết thúc sau %(countdown)s."
 
 #, python-format
-#~ msgid "Contest ends in %(countdown)s."
-#~ msgstr "Kỳ thi sẽ kết thúc sau %(countdown)s."
+msgid "You have %(countdown)s remaining."
+msgstr "Bạn còn lại %(countdown)s thời gian."
 
 #, python-format
-#~ msgid "%(time_limit)s window between %(start_time)s and %(end_time)s"
-#~ msgstr "%(time_limit)s giữa %(start_time)s và %(end_time)s"
+msgid "Contest ends in %(countdown)s."
+msgstr "Kỳ thi sẽ kết thúc sau %(countdown)s."
 
 #, python-format
-#~ msgid "%(length)s long starting on %(start_time)s"
-#~ msgstr "%(length)s tính từ %(start_time)s"
+msgid "%(time_limit)s window between %(start_time)s and %(end_time)s"
+msgstr "%(time_limit)s giữa %(start_time)s và %(end_time)s"
+
+#, python-format
+msgid "%(length)s long starting on %(start_time)s"
+msgstr "%(length)s tính từ %(start_time)s"
 
 #, python-format
 #~ msgid "The author of this contest is %(link_authors)s."
@@ -7865,8 +7863,8 @@ msgstr "Chọn tất cả"
 #~ "trong khi thi, có rating không quá **%(rating_ceiling)d**."
 
 #, python-format
-#~ msgid "The contest format is **%(format)s**."
-#~ msgstr "Kỳ thi sử dụng format **%(format)s**."
+msgid "The contest format is **%(format)s**."
+msgstr "Kỳ thi sử dụng format **%(format)s**."
 
 #, python-format
 #~ msgid "\"The %(SITE_NAME)s's contest list - past, present, and future.\""
@@ -7874,13 +7872,13 @@ msgstr "Chọn tất cả"
 #~ "\"Danh sách kỳ thi %(SITE_NAME)s - quá khứ, hiện tại, và tương lai.\""
 
 #, python-format
-#~ msgid "Joining this contest will leave %(contest)s."
-#~ msgstr "Tham gia kỳ thi này sẽ rời kỳ thi %(contest)s"
+msgid "Joining this contest will leave %(contest)s."
+msgstr "Tham gia kỳ thi này sẽ rời kỳ thi %(contest)s"
 
 #, fuzzy, python-format
-#~| msgid "Joining this contest will leave %(contest)s."
-#~ msgid "Spectating this contest will leave %(contest)s."
-#~ msgstr "Tham gia kỳ thi này sẽ rời kỳ thi %(contest)s"
+#| msgid "Joining this contest will leave %(contest)s."
+msgid "Spectating this contest will leave %(contest)s."
+msgstr "Tham gia kỳ thi này sẽ rời kỳ thi %(contest)s"
 
 #, python-format
 #~ msgid "This contest has %(count)s virtual participation"
@@ -7888,41 +7886,41 @@ msgstr "Chọn tất cả"
 #~ msgstr[0] "Kỳ thi này có %(count)s lượt tham gia ảo"
 
 #, fuzzy, python-format
-#~| msgid "Contest ends in %(countdown)s."
-#~ msgid "Registration opens in %(countdown)s"
-#~ msgstr "Kỳ thi sẽ kết thúc sau %(countdown)s."
+#| msgid "Contest ends in %(countdown)s."
+msgid "Registration opens in %(countdown)s"
+msgstr "Kỳ thi sẽ kết thúc sau %(countdown)s."
 
 #, python-format
-#~ msgid "Window ends in %(countdown)s"
-#~ msgstr "Thời gian làm bài kết thúc trong %(countdown)s."
+msgid "Window ends in %(countdown)s"
+msgstr "Thời gian làm bài kết thúc trong %(countdown)s."
 
 #, python-format
-#~ msgid "Ends in %(countdown)s"
-#~ msgstr "Kết thúc trong %(countdown)s."
+msgid "Ends in %(countdown)s"
+msgstr "Kết thúc trong %(countdown)s."
 
 #, python-format
-#~ msgid "Starting in %(countdown)s"
-#~ msgstr "Bắt đầu trong %(countdown)s."
+msgid "Starting in %(countdown)s"
+msgstr "Bắt đầu trong %(countdown)s."
 
 #, python-format
 #~ msgid "%(count)s submission"
 #~ msgid_plural "%(count)s submissions"
 #~ msgstr[0] "%(count)s bài nộp"
 
-#~ msgid "Rank"
-#~ msgstr "Hạng"
+msgid "Rank"
+msgstr "Hạng"
 
 #, python-format
-#~ msgid "You may only prepare a new data download once every %(duration)s."
-#~ msgstr "Bạn chỉ được chuẩn bị dữ liệu mới một lần mỗi %(duration)s."
+msgid "You may only prepare a new data download once every %(duration)s."
+msgstr "Bạn chỉ được chuẩn bị dữ liệu mới một lần mỗi %(duration)s."
 
 #, python-format
-#~ msgid "You will need to wait %(countdown)s to prepare a new data download."
-#~ msgstr "Bạn phải đợi %(countdown)s để chuẩn bị dữ liệu mới."
+msgid "You will need to wait %(countdown)s to prepare a new data download."
+msgstr "Bạn phải đợi %(countdown)s để chuẩn bị dữ liệu mới."
 
 #, python-format
-#~ msgid "%(cnt)s virtual participation of this user"
-#~ msgstr "Lần tham gia ảo thứ %(cnt)s của người dùng"
+msgid "%(cnt)s virtual participation of this user"
+msgstr "Lần tham gia ảo thứ %(cnt)s của người dùng"
 
 #, python-format
 #~ msgid ""
@@ -7951,28 +7949,26 @@ msgstr "Chọn tất cả"
 #~ "Bạn không thể tạo tổ chức mới vì bạn là admin của **nhiều hơn %(limit)s** "
 #~ "tổ chức. Hãy sử dụng các tổ chức có sẵn."
 
-#~ msgid "Your organizations"
-#~ msgstr "Tổ chức của bạn"
+msgid "Your organizations"
+msgstr "Tổ chức của bạn"
 
-#~ msgid "All organizations"
-#~ msgstr "Tất cả tổ chức"
+msgid "All organizations"
+msgstr "Tất cả tổ chức"
 
-#~ msgid "Problems list"
-#~ msgstr "Danh sách bài"
+msgid "Problems list"
+msgstr "Danh sách bài"
 
-#~ msgid "Contests list"
-#~ msgstr "Danh sách kỳ thi"
+msgid "Contests list"
+msgstr "Danh sách kỳ thi"
 
-#~ msgid "Create new problem"
-#~ msgstr "Tạo bài mới"
+msgid "Create new problem"
+msgstr "Tạo bài mới"
 
-#~ msgid "Test cases have been filled automatically and **not saved yet**!"
-#~ msgstr "Các test dưới đây được điền tự động và **chưa được lưu lại**!"
+msgid "Test cases have been filled automatically and **not saved yet**!"
+msgstr "Các test dưới đây được điền tự động và **chưa được lưu lại**!"
 
-#~ msgid "Author:"
-#~ msgid_plural "Authors:"
-#~ msgstr[0] "Tác giả:"
-#~ msgstr[1] "Các tác giả:"
+msgid "Author:"
+msgstr "Tác giả:"
 
 #, python-format
 #~ msgid "This will rescore %(count)s submission."
@@ -7984,8 +7980,8 @@ msgstr "Chọn tất cả"
 #~ msgid_plural "Are you sure you want to rescore %(count)s submissions?"
 #~ msgstr[0] "Bạn có chắc bạn muốn tính lại điểm của %(count)s bài nộp?"
 
-#~ msgid "Suggest"
-#~ msgstr "Đề xuất"
+msgid "Suggest"
+msgstr "Đề xuất"
 
 #, python-format
 #~ msgid "%(counter)s submission left"
@@ -7993,19 +7989,15 @@ msgstr "Chọn tất cả"
 #~ msgstr[0] "Còn %(counter)s lần nộp"
 #~ msgstr[1] "Còn %(counter)s lần nộp"
 
-#~ msgid "Problem type"
-#~ msgid_plural "Problem types"
-#~ msgstr[0] "Dạng bài"
-#~ msgstr[1] "Dạng bài"
+msgid "Problem type"
+msgstr "Dạng bài"
 
 #, python-format
-#~ msgid "No %(lang)s judge online"
-#~ msgstr "Không có máy chấm %(lang)s đang online"
+msgid "No %(lang)s judge online"
+msgstr "Không có máy chấm %(lang)s đang online"
 
-#~ msgid "Judge:"
-#~ msgid_plural "Judges:"
-#~ msgstr[0] "Máy chấm"
-#~ msgstr[1] "Các máy chấm"
+msgid "Judge:"
+msgstr "Máy chấm:"
 
 #, python-format
 #~ msgid ""
@@ -8023,8 +8015,8 @@ msgstr "Chọn tất cả"
 #~ "Nếu bạn không biết cách đề xuất bài tập mới, hãy tham khảo [hướng dẫn][0]."
 
 #, python-format
-#~ msgid "%(key)s is an invalid activation key."
-#~ msgstr "%(key)s là một mã kích hoạt không hợp lệ."
+msgid "%(key)s is an invalid activation key."
+msgstr "%(key)s là một mã kích hoạt không hợp lệ."
 
 #, python-format
 #~ msgid "Thanks for registering on the %(site_name)s! We're glad to have you."
@@ -8042,14 +8034,14 @@ msgstr "Chọn tất cả"
 #~ msgid "Activate your %(SITE_NAME)s account)"
 #~ msgstr "Kích hoạt tài khoản %(SITE_NAME)s"
 
-#~ msgid "We found your password in [a database of compromised passwords][0]."
-#~ msgstr ""
-#~ "Chúng tôi tìm thấy mật khẩu của bạn trong [danh sách mật khẩu bị rò rỉ]"
-#~ "[0]."
+msgid "We found your password in [a database of compromised passwords][0]."
+msgstr ""
+"Chúng tôi tìm thấy mật khẩu của bạn trong [danh sách mật khẩu bị rò rỉ]"
+"[0]."
 
 #, python-format
-#~ msgid "Forgot your password on the %(site_name)s? Don't worry!"
-#~ msgstr "Bạn quên mất mật khẩu trên %(site_name)s? Đừng lo lắng!"
+msgid "Forgot your password on the %(site_name)s? Don't worry!"
+msgstr "Bạn quên mất mật khẩu trên %(site_name)s? Đừng lo lắng!"
 
 #, python-format
 #~ msgid ""
@@ -8075,21 +8067,21 @@ msgstr "Chọn tất cả"
 #~ msgid "Password reset on %(site_name)s"
 #~ msgstr "Đặt lại mật khẩu tại %(site_name)s"
 
-#~ msgid "By registering, you agree to our [Terms & Conditions][0]."
-#~ msgstr ""
-#~ "Với việc đăng ký tài khoản, bạn đã đồng ý với [Điều khoản & Điều kiện][0]."
+#: templates/registration/registration_form.html
+msgid "By registering, you agree to our [Terms & Conditions][0]."
+msgstr "Với việc đăng ký tài khoản, bạn đã đồng ý với [Điều khoản & Điều kiện][0]."
 
-#~ msgid "Judges"
-#~ msgstr "Máy chấm"
+msgid "Judges"
+msgstr "Máy chấm"
 
 #, fuzzy
-#~| msgid "Version matrix"
-#~ msgid "Versions"
-#~ msgstr "Phiên bản của trình chấm"
+#| msgid "Version matrix"
+msgid "Versions"
+msgstr "Phiên bản của trình chấm"
 
 #, python-format
-#~ msgid "%(date)s on judge %(judge)s"
-#~ msgstr "%(date)s ở máy chấm %(judge)s"
+msgid "%(date)s on judge %(judge)s"
+msgstr "%(date)s ở máy chấm %(judge)s"
 
 #, python-format
 #~ msgid ""
@@ -8100,25 +8092,25 @@ msgstr "Chọn tất cả"
 #~ "đã được thông báo về lỗi này."
 
 #, python-format
-#~ msgid "Case #%(case)s"
-#~ msgstr "Trường hợp #%(case)s"
+msgid "Case #%(case)s"
+msgstr "Trường hợp #%(case)s"
 
 #, python-format
-#~ msgid "%(points)s/%(total)s points"
-#~ msgstr "%(points)s/%(total)s điểm"
+msgid "%(points)s/%(total)s points"
+msgstr "%(points)s/%(total)s điểm"
 
-#~ msgid "Mine"
-#~ msgstr "Bài nộp của tôi"
+msgid "Mine"
+msgstr "Bài nộp của tôi"
 
-#~ msgid "Best"
-#~ msgstr "Tốt nhất"
+msgid "Best"
+msgstr "Tốt nhất"
 
 #, python-format
-#~ msgid "%(user)s's"
-#~ msgstr "%(user)s's"
+msgid "%(user)s's"
+msgstr "%(user)s's"
 
-#~ msgid "Security keys:"
-#~ msgstr "Khoá bảo mật:"
+msgid "Security keys:"
+msgstr "Khoá bảo mật:"
 
 #, python-format
 #~ msgid "%(counter)s contest written"
@@ -8126,37 +8118,33 @@ msgstr "Chọn tất cả"
 #~ msgstr[0] "Đã tham gia %(counter)s kỳ thi"
 
 #, python-format
-#~ msgid "%(group)s (%(val)s points)"
-#~ msgstr "%(group)s (%(val)s điểm)"
-
-#: templates/widgets/select_all.html:8
-msgid "Check all"
-msgstr "Chọn tất cả"
+msgid "%(group)s (%(val)s points)"
+msgstr "%(group)s (%(val)s điểm)"
 
 msgid "If your account was created with Google sign-in, you do not need to reset a password. Please continue by signing in with Google."
 msgstr "Nếu tài khoản của bạn được tạo bằng đăng nhập Google, bạn không cần đặt lại mật khẩu. Vui lòng tiếp tục đăng nhập bằng Google."
-#~ msgid "Create new blog post"
-#~ msgstr "Tạo blog mới"
+msgid "Create new blog post"
+msgstr "Tạo blog mới"
 
-#~ msgid "Impersonate"
-#~ msgstr "Mạo danh"
+msgid "Impersonate"
+msgstr "Mạo danh"
 
 #, fuzzy
-#~| msgid "Ban this user"
-#~ msgid "Unban this user"
-#~ msgstr "Ban người dùng này"
+#| msgid "Ban this user"
+msgid "Unban this user"
+msgstr "Ban người dùng này"
 
-#~ msgid "Ban this user"
-#~ msgstr "Ban người dùng này"
+msgid "Ban this user"
+msgstr "Ban người dùng này"
 
 #~ msgid "Associated page"
 #~ msgstr "Trang liên kết"
 
-#~ msgid "Authors"
-#~ msgstr "Tác giả"
+msgid "Authors"
+msgstr "Tác giả"
 
-#~ msgid "on {time}"
-#~ msgstr "vào lúc {time}"
+msgid "on {time}"
+msgstr "vào lúc {time}"
 
 #~ msgid "Page %(current)s of %(total)s"
 #~ msgstr "Trang %(current)s / %(total)s"

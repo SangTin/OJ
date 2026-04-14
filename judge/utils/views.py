@@ -12,6 +12,16 @@ def generic_message(request, title, message, status=None):
     }, status=status)
 
 
+PAGINATION_INTERNAL_QUERY_PARAMS = ('page', 'page_jump_invalid', 'fallback_url')
+
+
+def sanitize_pagination_query(query):
+    query = query.copy()
+    for key in PAGINATION_INTERNAL_QUERY_PARAMS:
+        query.setlist(key, [])
+    return query
+
+
 def add_file_response(request, response, url_path, file_path, file_object=None):
     if url_path is not None and request.META.get('SERVER_SOFTWARE', '').startswith('nginx/'):
         response['X-Accel-Redirect'] = url_path
@@ -25,8 +35,7 @@ def add_file_response(request, response, url_path, file_path, file_object=None):
 
 
 def paginate_query_context(request):
-    query = request.GET.copy()
-    query.setlist('page', [])
+    query = sanitize_pagination_query(request.GET)
     query = query.urlencode()
     if query:
         return {'page_prefix': '%s?%s&page=' % (request.path, query),
