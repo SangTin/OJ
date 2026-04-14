@@ -53,6 +53,28 @@ def verify_email(backend, details, *args, **kwargs):
         raise InvalidEmail(backend)
 
 
+def activate_user(user=None, is_new=False, *args, **kwargs):
+    """Activate an inactive user that was linked by email.
+
+    When a user registers via email but hasn't activated yet, and then logs in
+    via OAuth (Google/GitHub/Facebook), associate_by_email links them to the
+    inactive account. Since the OAuth provider has already verified the email,
+    we can safely activate the account.
+    """
+    if user and not user.is_active and not is_new:
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+        # Also mark the RegistrationProfile as activated if it exists
+        try:
+            from registration.models import RegistrationProfile
+            RegistrationProfile.objects.filter(user=user, activated=False).update(activated=True)
+        except Exception:
+            pass
+
+        logger.info('Auto-activated user %s via OAuth email verification', user.username)
+
+
 class SocialPostAuthForm(forms.Form):
     username = forms.RegexField(regex=re.compile(r'^\w+$', re.ASCII), max_length=30, label='Username',
                                 error_messages={'invalid': 'A username must contain letters, numbers, or underscores.'})
