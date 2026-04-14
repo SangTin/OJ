@@ -78,6 +78,7 @@ class ProblemDataForm(ModelForm):
             'custom_grader', 'custom_header', 'grader_args',
             'checker', 'custom_checker', 'checker_args', 'checker_type',
             'output_limit',
+            'sample_input', 'sample_output',
         ]
         widgets = {
             'checker_args': HiddenInput,
@@ -95,7 +96,7 @@ class ProblemCaseForm(ModelForm):
     class Meta:
         model = ProblemTestCase
         fields = ('order', 'type', 'input_file', 'output_file', 'points',
-                  'is_pretest',  # 'output_limit', 'output_prefix',
+                  'is_pretest', 'is_sample',  # 'output_limit', 'output_prefix',
                   'checker', 'checker_args', 'generator_args')
         widgets = {
             'generator_args': HiddenInput,
@@ -119,6 +120,16 @@ class ProblemCaseFormSet(formset_factory(ProblemCaseForm, formset=BaseModelFormS
         form = super(ProblemCaseFormSet, self)._construct_form(i, **kwargs)
         form.valid_files = self.valid_files
         return form
+
+    def clean(self):
+        super().clean()
+        max_samples = settings.DMOJ_PROBLEM_MAX_SAMPLE_CASES
+        sample_count = sum(
+            1 for form in self.forms
+            if not form.cleaned_data.get('DELETE') and form.cleaned_data.get('is_sample')
+        )
+        if sample_count > max_samples:
+            raise ValidationError('At most %d test cases can be marked as sample.' % max_samples)
 
 
 class ProblemManagerMixin(LoginRequiredMixin, ProblemMixin, DetailView):
@@ -230,6 +241,7 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
         else:
             context['testcase_limit'] = settings.VNOJ_TESTCASE_HARD_LIMIT
             context['testcase_soft_limit'] = settings.VNOJ_TESTCASE_SOFT_LIMIT
+        context['DMOJ_PROBLEM_MAX_SAMPLE_CASES'] = settings.DMOJ_PROBLEM_MAX_SAMPLE_CASES
         return context
 
     def check_valid(self, data_form, cases_formset):

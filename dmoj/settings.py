@@ -226,7 +226,20 @@ DMOJ_PROBLEM_MAX_MEMORY_LIMIT = 1048576  # kilobytes
 DMOJ_PROBLEM_MIN_PROBLEM_POINTS = 0
 DMOJ_PROBLEM_HOT_PROBLEM_COUNT = 7
 
+# Grace period before a soft-deleted problem is permanently removed
+VNOJ_PROBLEM_DELETION_GRACE_PERIOD = datetime.timedelta(days=7)
+# Maximum time the garbage collection task is allowed to run per invocation
+VNOJ_PROBLEM_GARBAGE_COLLECTOR_TIME_LIMIT = datetime.timedelta(hours=1)
+VNOJ_PROBLEM_GARBAGE_COLLECTOR_CRONTAB_KWARGS = {'minute': 0, 'hour': 0}
+
 DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS = {'“', '”', '‘', '’', '−', 'ﬀ', 'ﬁ', 'ﬂ', 'ﬃ', 'ﬄ'}
+DMOJ_PROBLEM_MAX_SAMPLE_CASES = 5
+
+RUN_CODE_MAX_REQUESTS = 10  # max run-code requests per window per user
+RUN_CODE_WINDOW = 60  # seconds
+
+JUDGE0_API_URL = None  # e.g. 'http://localhost:2358'
+JUDGE0_AUTH_TOKEN = ''
 DMOJ_RATING_COLORS = True
 DMOJ_EMAIL_THROTTLING = (10, 60)
 VNOJ_DISCORD_WEBHOOK_THROTTLING = (10, 60)  # Max 10 messages in 60 seconds
