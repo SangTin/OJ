@@ -8128,6 +8128,10 @@ msgstr "Chọn tất cả"
 #~ msgid "%(group)s (%(val)s points)"
 #~ msgstr "%(group)s (%(val)s điểm)"
 
+#: templates/widgets/select_all.html:8
+msgid "Check all"
+msgstr "Chọn tất cả"
+
 msgid "If your account was created with Google sign-in, you do not need to reset a password. Please continue by signing in with Google."
 msgstr "Nếu tài khoản của bạn được tạo bằng đăng nhập Google, bạn không cần đặt lại mật khẩu. Vui lòng tiếp tục đăng nhập bằng Google."
 #~ msgid "Create new blog post"

@@ -96,7 +96,9 @@
     <script type="text/javascript">
         $(function () {
             $('#ace_user_script').on('ace_load', function (e, editor) {
-                window.updateAceTheme(editor);
+                if (window.updateAceTheme) {
+                    window.updateAceTheme(editor);
+                }
                 editor.getSession().setMode("ace/mode/javascript");
             });
 
