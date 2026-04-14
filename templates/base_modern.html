@@ -38,7 +38,7 @@
     {% if og_image %}
     <meta property="og:image" content="{{ request.build_absolute_uri(og_image) }}">
     {% else %}
-    <meta property="og:image" content="{{ request.build_absolute_uri(" /logo.png") }}">
+    <meta property="og:image" content="{{ request.build_absolute_uri("/logo.png") }}">
     {% endif %}
     {% block og_title %}{% endblock %}
     <meta property="og:site_name" content="{{ SITE_LONG_NAME }}">
@@ -321,7 +321,7 @@
                 {% endfor %}
                 {% else %}
                 {% set org = request.organization %}
-                {{ make_navbar_item('problem-list', url('problem_list_organization', org.slug), _('Problems')) }}
+                {{ make_navbar_item('problem-list', url('problem_list_organization', org.slug), _('PRoblems')) }}
                 {{ make_navbar_item('submission-list', url('submission_list_organization', org.slug), _('Submissions'))
                 }}
                 {{ make_navbar_item('contest-list', url('contest_list_organization', org.slug), _('Contests')) }}
@@ -500,7 +500,7 @@
             </span>
         </footer>
     </div>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@1.8.0"></script>
     <script>
         lucide.createIcons();
         window.addEventListener('theme-change', () => {
