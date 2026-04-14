@@ -65,9 +65,11 @@ class CustomTestRunView(LoginRequiredMixin, View):
 
         CustomTestHistory.objects.update_or_create(
             user=request.user,
-            language=language,
-            code=data.get("source", ""),
-            input_data=data.get("input", "")
+            defaults={
+                'language': language,
+                'code': data.get("source", ""),
+                'input_data': data.get("input", ""),
+            }
         )
 
         try:
