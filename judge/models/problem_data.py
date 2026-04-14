@@ -92,6 +92,10 @@ class ProblemData(models.Model):
 
     grader_args = models.TextField(verbose_name=_('grader arguments'), blank=True,
                                    help_text=_('grader arguments as a JSON object'))
+    sample_input = models.TextField(verbose_name=_('sample input'), blank=True,
+                                    help_text=_('Sample input for "Run Code". Used when no test case is marked as sample.'))
+    sample_output = models.TextField(verbose_name=_('sample output'), blank=True,
+                                     help_text=_('Expected sample output. Shown to users alongside their output.'))
     zipfile_size = models.BigIntegerField(verbose_name=_('test data storage size'), default=0,
                                           help_text=_('Size of the test data zip file in bytes.'))
 
@@ -152,6 +156,8 @@ class ProblemTestCase(models.Model):
     generator_args = models.TextField(verbose_name=_('generator arguments'), blank=True)
     points = models.IntegerField(verbose_name=_('point value'), blank=True, null=True)
     is_pretest = models.BooleanField(verbose_name=_('case is pretest?'))
+    is_sample = models.BooleanField(verbose_name=_('case is sample?'), default=False,
+                                    help_text=_('Sample cases are shown to users and used for "Run Code".'))
     output_prefix = models.IntegerField(verbose_name=_('output prefix length'), blank=True, null=True)
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
     checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)

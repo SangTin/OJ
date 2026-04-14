@@ -2548,6 +2548,34 @@ msgstr "điểm"
 msgid "case is pretest?"
 msgstr "là pretests?"
 
+#: judge/models/problem_data.py
+msgid "case is sample?"
+msgstr "là test mẫu?"
+
+#: judge/models/problem_data.py
+msgid "Sample cases are shown to users and used for \"Run Code\"."
+msgstr "Test mẫu được hiển thị cho người dùng và dùng cho chức năng \"Chạy thử\"."
+
+#: judge/models/problem_data.py
+msgid "sample input"
+msgstr "input mẫu"
+
+#: judge/models/problem_data.py
+msgid "Sample input for \"Run Code\". Used when no test case is marked as sample."
+msgstr "Input mẫu cho \"Chạy thử\". Sử dụng khi không có test nào được đánh dấu là mẫu."
+
+#: judge/models/problem_data.py
+msgid "sample output"
+msgstr "output mẫu"
+
+#: judge/models/problem_data.py
+msgid "Expected sample output. Shown to users alongside their output."
+msgstr "Output mẫu mong đợi. Hiển thị cùng với output của người dùng."
+
+#: templates/problem/data.html
+msgid "Sample?"
+msgstr "Mẫu?"
+
 #: judge/models/profile.py:41
 msgid "organization title"
 msgstr "tên tổ chức"

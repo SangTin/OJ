@@ -78,6 +78,7 @@ class ProblemDataForm(ModelForm):
             'custom_grader', 'custom_header', 'grader_args',
             'checker', 'custom_checker', 'checker_args', 'checker_type',
             'output_limit',
+            'sample_input', 'sample_output',
         ]
         widgets = {
             'checker_args': HiddenInput,
@@ -95,7 +96,7 @@ class ProblemCaseForm(ModelForm):
     class Meta:
         model = ProblemTestCase
         fields = ('order', 'type', 'input_file', 'output_file', 'points',
-                  'is_pretest',  # 'output_limit', 'output_prefix',
+                  'is_pretest', 'is_sample',  # 'output_limit', 'output_prefix',
                   'checker', 'checker_args', 'generator_args')
         widgets = {
             'generator_args': HiddenInput,
