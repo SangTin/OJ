@@ -8076,8 +8076,7 @@ msgstr "Chọn tất cả"
 #~ msgstr "Đặt lại mật khẩu tại %(site_name)s"
 
 #~ msgid "By registering, you agree to our [Terms & Conditions][0]."
-#~ msgstr ""
-#~ "Với việc đăng ký tài khoản, bạn đã đồng ý với [Điều khoản & Điều kiện][0]."
+#~ msgstr "Với việc đăng ký tài khoản, bạn đã đồng ý với [Điều khoản & Điều kiện][0]."
 
 #~ msgid "Judges"
 #~ msgstr "Máy chấm"
