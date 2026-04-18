@@ -4,6 +4,7 @@ import hmac
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -172,6 +173,51 @@ class Submission(models.Model):
             return True
 
         return False
+
+    @classmethod
+    def get_visible_submissions(cls, user, contest=None):
+        """Return submissions visible to `user` in a list context.
+
+        Mirrors the authorization filter in judge.views.submission
+        .SubmissionsListBase._get_queryset. Callers add their own
+        select_related/prefetch_related/ordering optimizations.
+
+        For detail-page visibility of a single submission, use the instance
+        method .can_see_detail(user) — it applies additional per-object rules
+        (source_visibility, testers, suggesting problems) that do not fit a
+        queryset filter.
+        """
+        from judge.models.contest import Contest
+
+        queryset = cls.objects.all()
+
+        if contest is not None:
+            queryset = queryset.filter(contest_object=contest)
+            if not contest.can_see_full_submission_list(user):
+                if not user.is_authenticated:
+                    return cls.objects.none()
+                queryset = queryset.filter(user=user.profile)
+            return queryset
+
+        # Global (non-contest-scoped) list.
+        if user.is_authenticated and user.has_perm('judge.see_private_contest'):
+            return queryset
+
+        visible_contests_q = (
+            Q(scoreboard_visibility=Contest.SCOREBOARD_VISIBLE) |
+            Q(end_time__lt=timezone.now())
+        )
+        if user.is_authenticated:
+            visible_contests_q |= Q(authors=user.profile) | Q(curators=user.profile)
+            visible_contests = Contest.objects.filter(visible_contests_q).distinct()
+            return queryset.filter(
+                Q(user=user.profile) |
+                Q(contest_object__in=visible_contests) |
+                Q(contest_object__isnull=True),
+            )
+
+        # Anonymous users
+        return cls.objects.none()
 
     def update_contest(self):
         try:
