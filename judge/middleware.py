@@ -150,8 +150,15 @@ class APIMiddleware(object):
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self._mcp_prefix = reverse('mcp_endpoint')
+        self._admin_prefix = reverse('admin:index')
 
     def __call__(self, request):
+        # MCP endpoint has its own Bearer-token auth (MCPToken) and must not
+        # be consumed by this middleware's Profile.api_token verification.
+        if request.path.startswith(self._mcp_prefix):
+            return self.get_response(request)
+
         full_token = request.headers.get('authorization', '')
         if not full_token:
             return self.get_response(request)
@@ -159,7 +166,7 @@ class APIMiddleware(object):
         token = self.header_pattern.match(full_token)
         if not token:
             return HttpResponse('Invalid authorization header', status=400)
-        if request.path.startswith(reverse('admin:index')):
+        if request.path.startswith(self._admin_prefix):
             return HttpResponse('Admin inaccessible', status=403)
 
         try:
