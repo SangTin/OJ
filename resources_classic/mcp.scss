@@ -1,0 +1,423 @@
+@use "vars" as *;
+
+.mcp-container {
+    max-width: 900px;
+    margin: 1.5em auto;
+}
+
+
+
+.mcp-hero {
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid $color_primary25;
+
+    .lead {
+        color: $color_primary50;
+        font-size: 1.1em;
+        margin: 0.5em 0 0;
+        line-height: 1.5;
+    }
+}
+
+/* Alerts ------------------------------------------------------- */
+.mcp-alert {
+    padding: 0.8em 1.2em;
+    margin-bottom: 1em;
+    border-left: 5px solid;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+    transition: opacity 0.3s ease;
+    position: relative;
+
+    .mcp-alert-content {
+        flex: 1;
+        line-height: 1.4;
+    }
+
+    .mcp-alert-close {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 4px;
+        cursor: pointer;
+        opacity: 0.5;
+        font-size: 1.25em;
+        font-weight: bold;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+        margin-left: 0.5em;
+        width: 24px;
+        height: 24px;
+        line-height: 1;
+
+        &:hover { opacity: 1; background: rgba(0,0,0,0.05) !important; }
+    }
+
+    &.mcp-alert-success { background: $color_success25; border-color: $color_success50; color: $color_success100; }
+    &.mcp-alert-error { background: $color_danger25; border-color: $color_danger50; color: $color_danger100; }
+    &.mcp-alert-info { background: $color_info25; border-color: $color_info50; color: $color_info100; }
+}
+
+/* One-Row Compact Token Listing (Classic) --------------------- */
+.mcp-token-list {
+    border: 1px solid $color_primary25;
+    border-radius: 4px;
+    background: $color_primary5;
+}
+
+.mcp-token-card {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.75em 1.25em !important;
+    border-bottom: 1px solid $color_primary25;
+    min-height: 55px;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: rgba($color_primary100, 0.02);
+        transform: none !important;
+        box-shadow: none !important;
+    }
+}
+
+.mcp-token-left-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+    flex: 1;
+    min-width: 0;
+}
+
+.mcp-token-name-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5em !important;
+    overflow: hidden;
+    
+    a {
+        text-decoration: none;
+        color: $color_link75;
+        font-weight: bold;
+        font-size: 0.95em;
+        white-space: nowrap;
+        &:hover { text-decoration: underline; }
+    }
+
+    .mcp-token-scopes-classic {
+        font-weight: normal;
+        color: $color_primary50;
+        font-style: italic;
+        margin-left: 0.5em;
+        font-size: 0.85em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.mcp-token-expiry {
+    font-size: 0.8em;
+    color: $color_primary50;
+    font-style: italic;
+    line-height: 1;
+
+    &.urgent {
+        color: $color_warning100;
+        font-weight: bold;
+    }
+}
+
+.mcp-token-right-meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5em !important;
+    flex-shrink: 0;
+}
+
+.mcp-token-usage {
+    font-size: 0.85em;
+    color: $color_primary50;
+    white-space: nowrap;
+}
+
+.mcp-token-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* Form --------------------------------------------------------- */
+.mcp-card {
+    background: $color_primary5;
+    border: 1px solid $color_primary25;
+    padding: 1.5em;
+    margin-bottom: 2em;
+}
+
+/* New Token Reveal Box (Classic) ------------------------------ */
+.mcp-secret-container {
+    background: $color_info25;
+    border: 2px solid $color_info100;
+    padding: 1.25em;
+    margin-bottom: 2em;
+    border-radius: 4px;
+}
+
+.mcp-secret-title {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    color: $color_info100;
+    margin-bottom: 0.75em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.mcp-secret-body {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+}
+
+.mcp-token-secret-box {
+    flex: 1;
+    padding: 0.6em 0.8em;
+    background: $color_primary0;
+    border: 1px solid $color_primary25;
+    font-family: monospace;
+    font-size: 1.1em;
+    word-break: break-all;
+    color: $color_primary100;
+}
+
+.mcp-copy-btn {
+    background: $color_link100;
+    color: white !important;
+    border: none;
+    padding: 0 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    white-space: nowrap;
+    border-radius: 2px;
+    &:hover {
+        background: $color_link75;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+}
+
+.mcp-secret-warning {
+    font-size: 0.9em;
+    color: $color_danger100 !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-weight: bold;
+}
+
+.mcp-form-row {
+    margin-bottom: 1em;
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0.3em;
+    }
+
+    input[type="text"], input[type="date"] {
+        width: 100%;
+        padding: 0.5em;
+        border: 1px solid $color_primary25;
+        background: $color_primary0;
+        color: $color_primary100;
+
+        &:focus {
+            border-color: $color_link100;
+            outline: none;
+        }
+    }
+
+    .helptext {
+        font-size: 0.85em;
+        color: $color_primary50;
+        display: block;
+        margin-top: 0.3em;
+    }
+}
+
+/* GitHub Style Custom Selector (Classic) ----------------------- */
+.mcp-github-select {
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.5em;
+}
+
+.mcp-github-select-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em;
+    border: 1px solid $color_primary25;
+    background: $color_primary0;
+    cursor: pointer;
+    font-size: 1em;
+
+    &:hover { background: $color_primary5; }
+    .icon-prefix, .icon-suffix { color: $color_primary50; }
+    .icon-suffix { margin-left: auto; }
+}
+
+.mcp-github-select-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: $color_primary0;
+    border: 1px solid $color_primary25;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+
+    &.show { display: block; }
+}
+
+.mcp-github-select-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em 1em;
+    cursor: pointer;
+
+    &:hover { background: $color_primary5; }
+
+    .check-icon {
+        color: $color_link100;
+        visibility: hidden;
+    }
+
+    &.active {
+        font-weight: bold;
+        .check-icon { visibility: visible; }
+    }
+}
+
+/* Scopes Selector (Classic) ----------------------------------- */
+.mcp-scopes-selector {
+    border: 1px solid $color_primary25;
+    background: $color_primary0;
+    margin-top: 0.5em;
+}
+
+.mcp-scopes-search-wrap {
+    padding: 5px;
+    border-bottom: 1px solid $color_primary25;
+    background: $color_primary5;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.mcp-scopes-search {
+    flex: 1;
+    padding: 4px 4px 4px 24px !important;
+    border: 1px solid $color_primary25 !important;
+}
+
+.mcp-scopes-search-icon {
+    position: absolute;
+    left: 10px;
+    color: $color_primary50;
+}
+
+.mcp-scopes-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.mcp-scope-item {
+    padding: 4px 8px;
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer;
+    &:hover { background: $color_primary5; }
+}
+
+/* Actions ------------------------------------------------------ */
+.mcp-btn {
+    padding: 6px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid $color_primary25;
+    border-radius: 3px;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5em !important;
+    text-decoration: none !important;
+    line-height: 1.2;
+
+    i {
+        display: inline-block !important;
+        flex-shrink: 0;
+        vertical-align: middle !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+    }
+
+    &.mcp-btn-primary {
+        background: $color_link100;
+        color: white !important;
+    }
+
+    &.mcp-btn-secondary {
+        background: $color_primary10;
+        color: $color_primary100 !important;
+        border-color: $color_primary25;
+    }
+
+    &.mcp-btn-danger-ghost {
+        background: transparent;
+        color: $color_danger100 !important;
+        border-color: $color_danger50;
+        padding: 4px 10px !important;
+        font-size: 0.85em !important;
+        line-height: 1 !important;
+
+        &:hover { background: $color_danger25; }
+    }
+}
+
+.mcp-revoke-form { display: inline !important; margin: 0 !important; }
+
+.mcp-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3em 1em;
+    color: $color_primary50;
+    gap: 0.5em;
+
+    i {
+        opacity: 0.3;
+        margin-bottom: 0.5em;
+    }
+}
+
+.hidden {
+    display: none !important;
+}

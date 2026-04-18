@@ -380,6 +380,13 @@
                                 {{ _('Change your password') }}
                             </a>
                         </td></tr>
+                        {% if has_mcp_access %}
+                            <tr><td>
+                                <a href="{{ url('mcp_token_manage') }}" class="inline-header">
+                                    {{ _('MCP API tokens') }}
+                                </a>
+                            </td></tr>
+                        {% endif %}
                         {% if can_download_data %}
                             <tr><td>
                                 <a href="{{ url('user_prepare_data') }}" class="inline-header">

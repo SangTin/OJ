@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block media %}
+    {{ form.media.css }}
+{% endblock %}
+
+{% block js_media %}
+    {{ form.media.js }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Revoke confirmation
+            document.querySelectorAll('.mcp-revoke-form').forEach(function (f) {
+                f.addEventListener('submit', function (event) {
+                    if (!confirm({{ _('Revoke this token? Any client using it will immediately stop working.')|htmltojs }})) {
+                        event.preventDefault();
+                    }
+                });
+            });
+
+            // Copy to clipboard
+            window.copyToClipboard = function(text, btnElement) {
+                navigator.clipboard.writeText(text).then(function() {
+                    const originalContent = btnElement.innerHTML;
+                    const isModern = typeof lucide !== 'undefined';
+                    
+                    if (isModern) {
+                        btnElement.innerHTML = '<i data-lucide="check" style="width:16px;height:16px"></i> {{ _("Copied!") }}';
+                        lucide.createIcons();
+                    } else {
+                        btnElement.innerHTML = '<i class="fa fa-check"></i> {{ _("Copied!") }}';
+                    }
+                    
+                    setTimeout(() => {
+                        btnElement.innerHTML = originalContent;
+                        if (isModern) lucide.createIcons();
+                    }, 2000);
+                });
+            };
+
+            // Search filtering for scopes
+            const searchInput = document.getElementById('mcp-scope-search');
+            const scopeItems = document.querySelectorAll('.mcp-scope-item:not(.no-results)');
+            const noResults = document.querySelector('.mcp-scope-item.no-results');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase().trim();
+                    let hasResults = false;
+
+                    scopeItems.forEach(item => {
+                        const label = item.querySelector('.mcp-scope-label').textContent.toLowerCase();
+                        if (label.includes(query)) {
+                            item.classList.remove('hidden');
+                            hasResults = true;
+                        } else {
+                            item.classList.add('hidden');
+                        }
+                    });
+
+                    if (noResults) {
+                        noResults.classList.toggle('hidden', hasResults);
+                    }
+                });
+            }
+
+            // Expiration Selector Logic
+            const expBtn = document.getElementById('mcp-expiration-btn');
+            const expMenu = document.getElementById('mcp-expiration-menu');
+            const expInput = document.getElementById('mcp-expiration-input');
+            const expLabel = document.getElementById('mcp-expiration-label');
+            const customContainer = document.getElementById('mcp-custom-date-container');
+            const items = document.querySelectorAll('.mcp-github-select-item');
+
+            if (expBtn) {
+                expBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    expMenu.classList.toggle('show');
+                });
+
+                document.addEventListener('click', () => expMenu.classList.remove('show'));
+
+                items.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const val = this.dataset.value;
+                        expInput.value = val;
+                        
+                        items.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        let text = this.querySelector('span').textContent;
+                        if (text.includes('(')) text = text.split('(')[0].trim();
+                        expLabel.textContent = text;
+                        
+                        customContainer.style.display = (val === 'custom') ? 'block' : 'none';
+                    });
+                });
+            }
+
+            // Clicking label/item toggles checkbox (Modern and Classic)
+            document.querySelectorAll('.mcp-scope-item:not(.no-results)').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = this.querySelector('input[type="checkbox"]');
+                        if (checkbox) {
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                });
+            });
+            // Alert dismissal
+            document.querySelectorAll('.mcp-alert').forEach(function(alert) {
+                const closeBtn = alert.querySelector('.mcp-alert-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 300);
+                    });
+                }
+
+                // Auto-dismiss success messages
+                if (alert.classList.contains('mcp-alert-success')) {
+                    setTimeout(() => {
+                        if (alert.parentElement) {
+                            alert.style.opacity = '0';
+                            setTimeout(() => alert.remove(), 300);
+                        }
+                    }, 5000);
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content_title %}
+    {{ _('MCP API tokens') }}
+{% endblock %}
+
+{% block title_row %}
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <h2 style="display:inline">{{ _('MCP API tokens') }}</h2>
+        {% if not show_form %}
+            <a href="?new=1" class="mcp-btn mcp-btn-primary">
+                {% if IS_MODERN_UI %}
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                {% else %}
+                    <i class="fa fa-plus"></i>
+                {% endif %}
+                {{ _('Generate new token') }}
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="mcp-container">
+        <div class="mcp-hero">
+            <p class="lead">
+                {{ _('Tokens authenticate MCP clients (e.g. Claude Desktop via mcp-remote) against this site.') }}
+            </p>
+            <p class="lead" style="font-size: 0.95rem; margin-top: 0.25rem;">
+                {{ _('Each token grants a subset of your current permissions; revoking either the permission or the token cuts off access.') }}
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'mcp-token-secret' in message.tags %}
+                    <div class="mcp-secret-container">
+                        <div class="mcp-secret-title">
+                            {% if IS_MODERN_UI %}
+                                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                            {% else %}
+                                <i class="fa fa-shield"></i>
+                            {% endif %}
+                            {{ _('New Token Generated') }}
+                        </div>
+                        <div class="mcp-secret-body">
+                            <div class="mcp-token-secret-box" id="token-secret">{{ message }}</div>
+                            <button class="mcp-copy-btn" onclick="copyToClipboard('{{ message|escapejs }}', this)">
+                                {% if IS_MODERN_UI %}
+                                    <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                                {% else %}
+                                    <i class="fa fa-copy"></i>
+                                {% endif %}
+                                {{ _('Copy') }}
+                            </button>
+                        </div>
+                        <div class="mcp-secret-warning">
+                            {% if IS_MODERN_UI %}
+                                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                            {% else %}
+                                <i class="fa fa-warning"></i>
+                            {% endif %}
+                            {{ _('Make sure to copy your new MCP token now. You won’t be able to see it again!') }}
+                        </div>
+                    </div>
+                {% elif message.level_tag == 'success' %}
+                    <div class="mcp-alert mcp-alert-success">
+                        {% if IS_MODERN_UI %}
+                            <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                        {% else %}
+                            <i class="fa fa-check-circle"></i>
+                        {% endif %}
+                        <div class="mcp-alert-content">{{ message }}</div>
+                        <button type="button" class="mcp-alert-close">
+                            {% if IS_MODERN_UI %}<i data-lucide="x" style="width:16px;height:16px"></i>{% else %}&times;{% endif %}
+                        </button>
+                    </div>
+                {% elif message.level_tag == 'error' %}
+                    <div class="mcp-alert mcp-alert-error">
+                        {% if IS_MODERN_UI %}
+                            <i data-lucide="x-circle" style="width: 20px; height: 20px;"></i>
+                        {% else %}
+                            <i class="fa fa-times-circle"></i>
+                        {% endif %}
+                        <div class="mcp-alert-content">{{ message }}</div>
+                        <button type="button" class="mcp-alert-close">
+                            {% if IS_MODERN_UI %}<i data-lucide="x" style="width:16px;height:16px"></i>{% else %}&times;{% endif %}
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="mcp-alert mcp-alert-info">
+                        {% if IS_MODERN_UI %}
+                            <i data-lucide="info" style="width: 20px; height: 20px;"></i>
+                        {% else %}
+                            <i class="fa fa-info-circle"></i>
+                        {% endif %}
+                        <div class="mcp-alert-content">{{ message }}</div>
+                        <button type="button" class="mcp-alert-close">
+                            {% if IS_MODERN_UI %}<i data-lucide="x" style="width:16px;height:16px"></i>{% else %}&times;{% endif %}
+                        </button>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if show_form %}
+            <div class="mcp-card">
+                <h3 style="margin-bottom: 1.5rem; font-weight: 700;">{{ _('Generate new token') }}</h3>
+                <form method="post" class="mcp-form">
+                    {% csrf_token %}
+                    <div class="mcp-form-row">
+                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                        {{ form.name.errors }}
+                        {{ form.name }}
+                        <span class="helptext">{{ form.name.help_text }}</span>
+                    </div>
+
+                    <div class="mcp-form-row">
+                        <label>{{ _('Expiration') }}</label>
+                        <div class="mcp-github-select" id="mcp-expiration-selector">
+                            <div class="mcp-github-select-btn" id="mcp-expiration-btn">
+                                {% if IS_MODERN_UI %}
+                                    <i data-lucide="calendar" class="icon-prefix" style="width:16px;height:16px"></i>
+                                {% else %}
+                                    <i class="fa fa-calendar icon-prefix"></i>
+                                {% endif %}
+                                <span id="mcp-expiration-label">{{ _('30 days') }}</span>
+                                {% if IS_MODERN_UI %}
+                                    <i data-lucide="chevron-down" class="icon-suffix" style="width:16px;height:16px"></i>
+                                {% else %}
+                                    <i class="fa fa-chevron-down icon-suffix"></i>
+                                {% endif %}
+                            </div>
+                            <div class="mcp-github-select-menu" id="mcp-expiration-menu">
+                                {% for val, label in form.expiration.field.choices %}
+                                    <div class="mcp-github-select-item {% if val == '30' %}active{% endif %}" data-value="{{ val }}">
+                                        {% if IS_MODERN_UI %}
+                                            <i data-lucide="check" class="check-icon" style="width:12px;height:12px"></i>
+                                        {% else %}
+                                            <i class="fa fa-check check-icon"></i>
+                                        {% endif %}
+                                        <span>{{ label }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="expiration" id="mcp-expiration-input" value="30">
+                        </div>
+                        
+                        <div id="mcp-custom-date-container" style="display: none; margin-top: 10px;">
+                            <label for="{{ form.custom_expiration.id_for_label }}" style="font-size: 0.85rem; opacity: 0.8;">{{ form.custom_expiration.label }}</label>
+                            {{ form.custom_expiration }}
+                            {{ form.custom_expiration.errors }}
+                        </div>
+                    </div>
+                    <div class="mcp-form-row">
+                        <label>{{ form.scopes.label }}</label>
+                        {{ form.scopes.errors }}
+                        <div class="mcp-scopes-selector">
+                            <div class="mcp-scopes-search-wrap">
+                                {% if IS_MODERN_UI %}
+                                    <i data-lucide="search" class="mcp-scopes-search-icon" style="width:14px;height:14px"></i>
+                                {% else %}
+                                    <i class="fa fa-search mcp-scopes-search-icon"></i>
+                                {% endif %}
+                                <input type="text" id="mcp-scope-search" class="mcp-scopes-search" placeholder="{{ _('Search permissions...') }}">
+                            </div>
+                            <div class="mcp-scopes-list" id="mcp-scopes-list">
+                                {% for choice in form.scopes %}
+                                    <div class="mcp-scope-item">
+                                        {{ choice.tag() }}
+                                        <div class="mcp-scope-label">{{ choice.choice_label }}</div>
+                                    </div>
+                                {% endfor %}
+                                <div class="mcp-scope-item no-results hidden">
+                                    {{ _('No permissions match your search.') }}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="helptext">{{ form.scopes.help_text }}</span>
+                    </div>
+                    <div class="mcp-form-actions">
+                        <button type="submit" class="mcp-btn mcp-btn-primary">
+                            {% if IS_MODERN_UI %}
+                                <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                            {% else %}
+                                <i class="fa fa-paper-plane"></i>
+                            {% endif %}
+                            {{ _('Generate Token') }}
+                        </button>
+                        <a href="{{ url('mcp_token_manage') }}" class="mcp-btn mcp-btn-secondary">
+                            {{ _('Cancel') }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+        {% if tokens %}
+            <div class="mcp-token-list">
+                {% for token in tokens %}
+                    <div class="mcp-token-card">
+                        <div class="mcp-token-left-meta">
+                            <div class="mcp-token-name-wrap">
+                                <a href="#" class="mcp-token-name">{{ token.name }}</a>
+                                <span class="mcp-token-scopes-classic"> — 
+                                    {% for scope in token.scopes.all() %}
+                                        {{ scope.codename }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <div class="mcp-token-expiry {% if token.expires_at and token.expires_at < now %}urgent{% endif %}">
+                                {% if token.revoked_at %}
+                                    <span class="mcp-status-revoked">{{ _('Revoked') }}</span>
+                                {% elif token.expires_at %}
+                                    {% if token.expires_at < now %}
+                                        {{ _('Expired on') }} {{ token.expires_at|date("M j, Y H:i") }}
+                                    {% else %}
+                                        {{ _('Expires on') }} {{ token.expires_at|date("D, j M Y") }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">{{ _('No expiration') }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mcp-token-right-meta">
+                            <div class="mcp-token-usage">
+                                {% if token.last_used %}
+                                    {{ _('Last used') }} {{ token.last_used|date("M j, Y H:i") }}
+                                {% else %}
+                                    <span class="text-muted">{{ _('Never used') }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="mcp-token-actions">
+                                <form action="{{ url('mcp_token_revoke', token.id) }}" method="post" class="mcp-revoke-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="mcp-btn mcp-btn-danger-ghost">
+                                        {% if IS_MODERN_UI %}
+                                            <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                                        {% else %}
+                                            <i class="fa fa-trash"></i>
+                                        {% endif %}
+                                        {{ _('Delete') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="mcp-empty">
+                {% if IS_MODERN_UI %}
+                    <i data-lucide="key-round" style="width: 48px; height: 48px;"></i>
+                {% else %}
+                    <i class="fa fa-key fa-3x"></i>
+                {% endif %}
+                <div style="font-size: 1.1rem; font-weight: 500;">{{ _('No tokens found') }}</div>
+                <div style="max-width: 300px; color: var(--text-muted);">
+                    {{ _('You haven’t generated any MCP API tokens yet. Create one to get started with remote access.') }}
+                </div>
+                <a href="?new=1" class="mcp-btn mcp-btn-primary" style="margin-top: 0.5rem;">
+                    {% if IS_MODERN_UI %}
+                        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                    {% else %}
+                        <i class="fa fa-plus"></i>
+                    {% endif %}
+                    {{ _('Generate my first token') }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

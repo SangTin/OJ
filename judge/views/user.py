@@ -528,6 +528,7 @@ def edit_profile(request):
         'has_math_config': bool(settings.MATHOID_URL),
         'ignore_user_script': True,
         'TIMEZONE_MAP': settings.TIMEZONE_MAP,
+        'has_mcp_access': request.user.has_perm('judge.use_mcp_api'),
     })
 
 
