@@ -393,6 +393,7 @@ else:
                     'children': [
                         'judge.Profile',
                         'judge.Badge',
+                        'judge.MCPToken',
                         'auth.Group',
                         'registration.RegistrationProfile',
                     ],
