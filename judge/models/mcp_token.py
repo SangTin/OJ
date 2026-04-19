@@ -59,6 +59,7 @@ class MCPToken(models.Model):
             ('mcp_read_problem', _('MCP: read problems')),
             ('mcp_read_submission', _('MCP: read submissions')),
             ('mcp_read_ticket', _('MCP: read tickets')),
+            ('mcp_read_contest', _('MCP: read contests')),
         )
 
     def __str__(self):

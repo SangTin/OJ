@@ -10,6 +10,7 @@ import re
 __all__ = [
     'serialize_problem', 'serialize_problem_summary',
     'serialize_submission', 'json_text',
+    'serialize_contest_summary', 'serialize_contest_detail', 'serialize_contest_standings_row',
 ]
 
 
@@ -78,3 +79,63 @@ def serialize_submission(submission, include_source=False):
 def json_text(obj):
     """Wrap an object as a single MCP TextContent block with JSON body."""
     return [{'type': 'text', 'text': json.dumps(obj, ensure_ascii=False, default=str)}]
+
+
+def serialize_contest_summary(contest):
+    return {
+        'key': contest.key,
+        'name': contest.name,
+        'start_time': contest.start_time.isoformat() if contest.start_time else None,
+        'end_time': contest.end_time.isoformat() if contest.end_time else None,
+        'duration_seconds': int(contest.contest_window_length.total_seconds())
+        if contest.contest_window_length is not None else None,
+        'is_rated': contest.is_rated,
+        'ended': contest.ended,
+        'format_name': contest.format_name,
+        'organization': contest.organization.slug if contest.organization else None,
+    }
+
+
+def serialize_contest_detail(contest):
+    data = serialize_contest_summary(contest)
+    data.update({
+        'description': contest.description,
+        'scoreboard_visibility': contest.scoreboard_visibility,
+        'is_visible': contest.is_visible,
+        'is_private': contest.is_private,
+        'is_organization_private': contest.is_organization_private,
+        'frozen_last_minutes': contest.frozen_last_minutes,
+        'is_frozen': contest.is_frozen,
+        'problems': [{
+            'code': contest_problem.problem.code,
+            'name': contest_problem.problem.name,
+            'order': contest_problem.order,
+            'points': contest_problem.points,
+            'partial': contest_problem.partial,
+            'is_pretested': contest_problem.is_pretested,
+            'max_submissions': contest_problem.max_submissions,
+        } for contest_problem in contest.contest_problems.all()],
+    })
+    return data
+
+
+def serialize_contest_standings_row(participation, rank, use_frozen):
+    score = participation.score
+    cumtime = participation.cumtime
+    tiebreaker = participation.tiebreaker
+    if use_frozen:
+        score = participation.frozen_score
+        cumtime = participation.frozen_cumtime
+        tiebreaker = participation.frozen_tiebreaker
+
+    return {
+        'rank': rank,
+        'username': participation.user.user.username,
+        'display_name': participation.user.display_name,
+        'score': score,
+        'cumtime': int(cumtime) if cumtime is not None else None,
+        'tiebreaker': tiebreaker,
+        'virtual': participation.virtual,
+        'is_disqualified': participation.is_disqualified,
+        'real_start': participation.real_start.isoformat() if participation.real_start else None,
+    }
