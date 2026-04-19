@@ -97,7 +97,7 @@ def mcp_endpoint(request):
             return _rpc_result(rpc_id, {})
 
         if method == 'tools/list':
-            return _rpc_result(rpc_id, {'tools': list_tools_spec()})
+            return _rpc_result(rpc_id, {'tools': list_tools_spec(auth)})
 
         if method == 'tools/call':
             name = params.get('name')

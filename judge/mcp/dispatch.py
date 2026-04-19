@@ -48,14 +48,17 @@ def call_tool(name, arguments, auth):
         raise MCPToolError(str(e) or 'permission denied')
 
 
-def list_tools_spec():
+def list_tools_spec(auth):
     """Return the JSON-RPC ``tools/list`` payload."""
-    return [
-        {
-            'name': t.name,
-            'description': t.description,
-            'inputSchema': t.input_schema,
-            **({'annotations': t.annotations} if t.annotations else {}),
-        }
-        for t in TOOL_REGISTRY.values()
-    ]
+    specs = []
+    for t in TOOL_REGISTRY.values():
+        if all(p in auth.scopes and auth.user.has_perm(p) for p in t.required_perms):
+            spec = {
+                'name': t.name,
+                'description': t.description,
+                'inputSchema': t.input_schema,
+            }
+            if t.annotations:
+                spec['annotations'] = t.annotations
+            specs.append(spec)
+    return specs
