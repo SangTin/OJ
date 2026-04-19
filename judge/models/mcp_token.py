@@ -60,6 +60,7 @@ class MCPToken(models.Model):
             ('mcp_read_submission', _('MCP: read submissions')),
             ('mcp_read_ticket', _('MCP: read tickets')),
             ('mcp_read_contest', _('MCP: read contests')),
+            ('mcp_read_user', _('MCP: read users')),
         )
 
     def __str__(self):

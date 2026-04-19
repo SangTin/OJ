@@ -3,4 +3,4 @@
 Order matters only insofar as tool names must be unique; the registry raises
 on duplicates.
 """
-from judge.mcp.tools import contests, problems, submissions, tickets  # noqa: F401
+from judge.mcp.tools import contests, problems, submissions, tickets, users  # noqa: F401

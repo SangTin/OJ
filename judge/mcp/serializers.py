@@ -11,6 +11,7 @@ __all__ = [
     'serialize_problem', 'serialize_problem_summary',
     'serialize_submission', 'json_text',
     'serialize_contest_summary', 'serialize_contest_detail', 'serialize_contest_standings_row',
+    'serialize_user_summary', 'serialize_user_detail',
 ]
 
 
@@ -139,3 +140,75 @@ def serialize_contest_standings_row(participation, rank, use_frozen):
         'is_disqualified': participation.is_disqualified,
         'real_start': participation.real_start.isoformat() if participation.real_start else None,
     }
+
+
+def _get_profile_rating(profile):
+    rating = getattr(profile, 'rating', None)
+    if rating is not None:
+        return rating
+
+    ratings = getattr(profile, 'ratings', None)
+    if ratings is None:
+        return None
+
+    latest = ratings.order_by('-contest__end_time').first()
+    return latest.rating if latest is not None else None
+
+
+def serialize_user_summary(profile):
+    return {
+        'username': profile.user.username,
+        'display_name': profile.display_name,
+        'rating': _get_profile_rating(profile),
+        'problem_count': profile.problem_count,
+        'is_unlisted': profile.is_unlisted,
+        'is_banned': profile.is_banned,
+        'display_rank': profile.display_rank,
+    }
+
+
+def serialize_user_detail(profile, viewer):
+    rating = _get_profile_rating(profile)
+    is_owner = bool(getattr(viewer, 'is_authenticated', False) and profile.user_id == viewer.id)
+    data = {
+        'username': profile.user.username,
+        'display_name': profile.display_name,
+        'about': profile.about,
+        'rating': rating,
+        'performance_points': profile.performance_points,
+        'contribution_points': profile.contribution_points,
+        'problem_count': profile.problem_count,
+        'rank': profile.__class__.objects.filter(
+            is_unlisted=False,
+            performance_points__gt=profile.performance_points,
+        ).exclude(id=profile.id).count() + 1,
+        'rating_rank': (
+            profile.__class__.objects.filter(
+                is_unlisted=False,
+                rating__gt=rating,
+            ).count() + 1
+            if rating is not None else None
+        ),
+        'timezone': profile.timezone,
+        'date_joined': profile.user.date_joined.isoformat() if profile.user.date_joined else None,
+        'last_access': profile.last_access.isoformat() if profile.last_access else None,
+        'is_unlisted': profile.is_unlisted,
+        'is_banned': profile.is_banned,
+        'display_rank': profile.display_rank,
+        'organizations': [{
+            'slug': organization.slug,
+            'name': organization.name,
+            'short_name': organization.short_name,
+        } for organization in profile.organizations.all()],
+        'email': profile.user.email if (is_owner or getattr(viewer, 'is_staff', False)) else None,
+    }
+
+    badges = getattr(profile, 'badges', None)
+    if badges is not None:
+        data['badges'] = [{
+            'name': badge.name,
+            'mini': badge.mini,
+            'full_size': badge.full_size,
+        } for badge in badges.all()]
+
+    return data
