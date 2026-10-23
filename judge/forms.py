@@ -611,7 +611,15 @@ class CustomAuthenticationForm(AuthenticationForm, SocialAuthMixin):
             user = None
         if user is not None:
             self.confirm_login_allowed(user)
-        return super(CustomAuthenticationForm, self).clean()
+        cleaned_data = super(CustomAuthenticationForm, self).clean()
+        # Checked only once the password is verified, so it doesn't reveal which accounts are pending.
+        if self.user_cache is not None and not self.user_cache.is_superuser and \
+                Profile.objects.filter(user=self.user_cache, is_approved=False).exists():
+            raise forms.ValidationError(
+                _('Your account is waiting for an administrator to approve it.'),
+                code='pending_approval',
+            )
+        return cleaned_data
 
     def confirm_login_allowed(self, user):
         if user.profile.is_banned:

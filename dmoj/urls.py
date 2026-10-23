@@ -14,6 +14,7 @@ from judge.sitemap import sitemaps
 from judge.views import TitledTemplateView, api, blog, comment, contests, customtest, language, license, mailgun, \
     notification, organization, preview, problem, problem_download, problem_manage, ranked_submission, register, \
     stats, status, submission, tag, tasks, ticket, two_factor, user, widgets
+from judge.views.account_approval import AccountApprovalAction, PendingAccountList
 from judge.views.magazine import MagazinePage
 from judge.views.misc_config import MiscConfigEdit
 from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
@@ -47,6 +48,7 @@ register_patterns = [
          TitledTemplateView.as_view(template_name=REGISTRATION_COMPLETE_TEMPLATE,
                                     title=_('Registration Completed')),
          name='registration_complete'),
+    path('pending/', register.account_pending_approval, name='account_pending_approval'),
     path('register/closed/',
          TitledTemplateView.as_view(template_name='registration/registration_closed.html',
                                     title=_('Registration Not Allowed')),
@@ -209,6 +211,8 @@ urlpatterns = [
         path('<int:page>', lambda request, page:
              HttpResponsePermanentRedirect('%s?page=%s' % (reverse('user_list'), page))),
         path('find', user.user_ranking_redirect, name='user_ranking_redirect'),
+        path('approval/', PendingAccountList.as_view(), name='account_approval'),
+        path('approval/action', AccountApprovalAction.as_view(), name='account_approval_action'),
     ])),
 
     path('user', user.UserAboutPage.as_view(), name='user_page'),
@@ -441,6 +445,7 @@ urlpatterns = [
         path('', notification.NotificationList.as_view(), name='notification_list'),
         path('ajax', notification.NotificationAjax.as_view(), name='notification_ajax'),
         path('mark_read', notification.NotificationMarkRead.as_view(), name='notification_mark_read'),
+        path('action', notification.NotificationActionView.as_view(), name='notification_action'),
     ])),
 
     path('ticket/<int:pk>', include([

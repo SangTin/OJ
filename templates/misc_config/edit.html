@@ -94,6 +94,13 @@
     </div>
 
     <div class="misc-config-section">
+        <h3>{{ _('Registration') }}</h3>
+        <table class="django-as-table">
+            {{ field_row(form.require_account_approval) }}
+        </table>
+    </div>
+
+    <div class="misc-config-section">
         <h3>{{ _('Notifications') }}</h3>
         <table class="django-as-table">
             {{ field_row(form.top_notification) }}

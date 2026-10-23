@@ -1,4 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     <p>{{ _('Your account has been successfully activated.') }}</p>
+    {% if misc_config.require_account_approval %}
+        <p>{{ _('An administrator also needs to approve your account before you can log in. You will receive an email once it has been approved.') }}</p>
+    {% endif %}
 {% endblock %}

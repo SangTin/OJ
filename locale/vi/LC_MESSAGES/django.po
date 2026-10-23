@@ -10003,3 +10003,166 @@ msgstr "Kết quả đúng một phần"
 
 #~ msgid "Maximum single-case runtime:"
 #~ msgstr "Thời gian chạy test lâu nhất:"
+
+msgid "approved"
+msgstr "đã duyệt"
+
+msgid ""
+"Unapproved users cannot log in. New accounts start unapproved when account "
+"approval is required."
+msgstr ""
+"Người dùng chưa được duyệt không thể đăng nhập. Tài khoản mới sẽ ở trạng "
+"thái chưa duyệt khi bật yêu cầu duyệt tài khoản."
+
+msgid "Approve user accounts"
+msgstr "Duyệt tài khoản người dùng"
+
+#, python-format
+msgid "New account awaiting approval: %s"
+msgstr "Tài khoản mới đang chờ duyệt: %s"
+
+#, python-format
+msgid "Your account on %s has been approved"
+msgstr "Tài khoản của bạn trên %s đã được duyệt"
+
+#, python-format
+msgid ""
+"Hello %(username)s,\n"
+"\n"
+"Your account on %(site)s has been approved by an administrator. You can now log in at %(url)s"
+msgstr ""
+"Xin chào %(username)s,\n"
+"\n"
+"Tài khoản của bạn trên %(site)s đã được quản trị viên duyệt. Bạn có thể đăng nhập tại %(url)s"
+
+msgid "Account pending approval"
+msgstr "Tài khoản đang chờ duyệt"
+
+msgid ""
+"Your account is waiting for an administrator to approve it. You will receive"
+" an email once it has been approved."
+msgstr ""
+"Tài khoản của bạn đang chờ quản trị viên duyệt. Bạn sẽ nhận được email khi "
+"tài khoản được duyệt."
+
+msgid "Your account is waiting for an administrator to approve it."
+msgstr "Tài khoản của bạn đang chờ quản trị viên duyệt."
+
+msgid ""
+"An administrator also needs to approve your account before you can log in. "
+"You will receive an email once it has been approved."
+msgstr ""
+"Tài khoản của bạn cần được quản trị viên duyệt trước khi có thể đăng nhập. "
+"Bạn sẽ nhận được email khi tài khoản được duyệt."
+
+#, python-format
+msgid "Could not email approval to: %s"
+msgstr "Không gửi được email thông báo duyệt tới: %s"
+
+msgid "Approve selected accounts"
+msgstr "Duyệt các tài khoản đã chọn"
+
+#, python-format
+msgid "%d account was approved."
+msgid_plural "%d accounts were approved."
+msgstr[0] "Đã duyệt %d tài khoản."
+
+msgid "Require account approval"
+msgstr "Yêu cầu duyệt tài khoản"
+
+msgid ""
+"New accounts cannot log in until an administrator approves them. Existing "
+"accounts are not affected."
+msgstr ""
+"Tài khoản mới không thể đăng nhập cho đến khi được quản trị viên duyệt. "
+"Không ảnh hưởng đến các tài khoản hiện có."
+
+msgid "Registration"
+msgstr "Đăng ký"
+
+msgid "Pending accounts"
+msgstr "Tài khoản chờ duyệt"
+
+#, python-format
+msgid "Your registration on %s was not approved"
+msgstr "Đăng ký của bạn trên %s không được duyệt"
+
+msgid "Approve all pending accounts?"
+msgstr "Duyệt tất cả tài khoản đang chờ?"
+
+msgid "Approve all"
+msgstr "Duyệt tất cả"
+
+msgid "Email verified"
+msgstr "Đã xác nhận email"
+
+msgid "Registered"
+msgstr "Ngày đăng ký"
+
+msgid "The user has not clicked the activation link yet."
+msgstr "Người dùng chưa bấm vào link kích hoạt."
+
+msgid "Approve"
+msgstr "Duyệt"
+
+msgid "Reject"
+msgstr "Từ chối"
+
+msgid "There are no accounts waiting for approval."
+msgstr "Không có tài khoản nào đang chờ duyệt."
+
+#, python-format
+msgid "%(num)d account is waiting for approval."
+msgid_plural "%(num)d accounts are waiting for approval."
+msgstr[0] "Có %(num)d tài khoản đang chờ duyệt."
+
+msgid "Registration was not approved."
+msgstr "Đăng ký không được duyệt."
+
+#, python-format
+msgid "Account %s was rejected and locked."
+msgstr "Đã từ chối và khoá tài khoản %s."
+
+#, python-format
+msgid "Reject and lock account %(username)s?"
+msgstr "Từ chối và khoá tài khoản %(username)s?"
+
+#, python-format
+msgid ""
+"Hello %(username)s,\n"
+"\n"
+"Your registration on %(site)s was not approved by an administrator, and the account has been locked."
+msgstr ""
+"Xin chào %(username)s,\n"
+"\n"
+"Đăng ký của bạn trên %(site)s không được quản trị viên duyệt, và tài khoản đã bị khoá."
+
+msgid "kind"
+msgstr "loại"
+
+msgid "data"
+msgstr "dữ liệu"
+
+msgid "Reject all"
+msgstr "Từ chối tất cả"
+
+msgid "Reject and lock all pending accounts?"
+msgstr "Từ chối và khoá tất cả tài khoản đang chờ?"
+
+msgid "Reject and lock this account?"
+msgstr "Từ chối và khoá tài khoản này?"
+
+msgid "This account has already been handled."
+msgstr "Tài khoản này đã được xử lý."
+
+#, python-format
+msgid "Account %s was approved."
+msgstr "Đã duyệt tài khoản %s."
+
+msgid "This action is no longer available."
+msgstr "Thao tác này không còn khả dụng."
+
+#, python-format
+msgid "%d account was rejected and locked."
+msgid_plural "%d accounts were rejected and locked."
+msgstr[0] "Đã từ chối và khoá %d tài khoản."
