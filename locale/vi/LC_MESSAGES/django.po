@@ -10003,3 +10003,66 @@ msgstr "Kết quả đúng một phần"
 
 #~ msgid "Maximum single-case runtime:"
 #~ msgstr "Thời gian chạy test lâu nhất:"
+
+msgid "approved"
+msgstr "đã duyệt"
+
+msgid ""
+"Unapproved users cannot log in. New accounts start unapproved when account "
+"approval is required."
+msgstr ""
+"Người dùng chưa được duyệt không thể đăng nhập. Tài khoản mới sẽ ở trạng "
+"thái chưa duyệt khi bật yêu cầu duyệt tài khoản."
+
+msgid "Approve user accounts"
+msgstr "Duyệt tài khoản người dùng"
+
+#, python-format
+msgid "New account awaiting approval: %s"
+msgstr "Tài khoản mới đang chờ duyệt: %s"
+
+#, python-format
+msgid "Your account on %s has been approved"
+msgstr "Tài khoản của bạn trên %s đã được duyệt"
+
+#, python-format
+msgid ""
+"Hello %(username)s,\n"
+"\n"
+"Your account on %(site)s has been approved by an administrator. You can now log in at %(url)s"
+msgstr ""
+"Xin chào %(username)s,\n"
+"\n"
+"Tài khoản của bạn trên %(site)s đã được quản trị viên duyệt. Bạn có thể đăng nhập tại %(url)s"
+
+msgid "Account pending approval"
+msgstr "Tài khoản đang chờ duyệt"
+
+msgid ""
+"Your account is waiting for an administrator to approve it. You will receive"
+" an email once it has been approved."
+msgstr ""
+"Tài khoản của bạn đang chờ quản trị viên duyệt. Bạn sẽ nhận được email khi "
+"tài khoản được duyệt."
+
+msgid "Your account is waiting for an administrator to approve it."
+msgstr "Tài khoản của bạn đang chờ quản trị viên duyệt."
+
+msgid ""
+"An administrator also needs to approve your account before you can log in. "
+"You will receive an email once it has been approved."
+msgstr ""
+"Tài khoản của bạn cần được quản trị viên duyệt trước khi có thể đăng nhập. "
+"Bạn sẽ nhận được email khi tài khoản được duyệt."
+
+#, python-format
+msgid "Could not email approval to: %s"
+msgstr "Không gửi được email thông báo duyệt tới: %s"
+
+msgid "Approve selected accounts"
+msgstr "Duyệt các tài khoản đã chọn"
+
+#, python-format
+msgid "%d account was approved."
+msgid_plural "%d accounts were approved."
+msgstr[0] "Đã duyệt %d tài khoản."

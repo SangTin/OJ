@@ -47,6 +47,7 @@ register_patterns = [
          TitledTemplateView.as_view(template_name=REGISTRATION_COMPLETE_TEMPLATE,
                                     title=_('Registration Completed')),
          name='registration_complete'),
+    path('pending/', register.account_pending_approval, name='account_pending_approval'),
     path('register/closed/',
          TitledTemplateView.as_view(template_name='registration/registration_closed.html',
                                     title=_('Registration Not Allowed')),

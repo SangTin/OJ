@@ -16,6 +16,7 @@ from sortedm2m.forms import SortedMultipleChoiceField
 
 from judge.forms import SocialAuthMixin
 from judge.models import Language, Organization, Profile, TIMEZONE
+from judge.utils.account_approval import hold_for_approval, notify_account_approvers
 from judge.utils.recaptcha import ReCaptchaField, ReCaptchaWidget
 from judge.utils.subscription import Subscription, newsletter_id
 from judge.widgets import Select2MultipleWidget, Select2Widget
@@ -98,9 +99,12 @@ class RegistrationView(OldRegistrationView):
         profile.timezone = cleaned_data['timezone']
         profile.language = cleaned_data['language']
         profile.organizations.add(*cleaned_data['organizations'])
+        needs_approval = hold_for_approval(profile)
 
         user.save()
         profile.save()
+        if needs_approval:
+            notify_account_approvers(profile)
 
         if newsletter_id is not None and cleaned_data['newsletter']:
             Subscription(user=user, newsletter_id=newsletter_id, subscribed=True).save()
@@ -121,6 +125,14 @@ class ActivationView(OldActivationView):
         if 'title' not in kwargs:
             kwargs['title'] = self.title
         return super(ActivationView, self).get_context_data(**kwargs)
+
+
+def account_pending_approval(request):
+    return render(request, 'generic-message.html', {
+        'title': gettext('Account pending approval'),
+        'message': gettext('Your account is waiting for an administrator to approve it. '
+                           'You will receive an email once it has been approved.'),
+    })
 
 
 def social_auth_error(request):

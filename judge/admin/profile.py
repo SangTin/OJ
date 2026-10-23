@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as OldUserAdmin
 from django.contrib.auth.models import Permission
 from django.forms import ModelForm
@@ -8,6 +8,7 @@ from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from reversion.admin import VersionAdmin
 
 from judge.models import Profile, WebAuthnCredential
+from judge.utils.account_approval import send_approval_email
 from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminAceWidget, AdminMartorWidget, AdminSelect2MultipleWidget, AdminSelect2Widget
 
@@ -61,15 +62,15 @@ class WebAuthnInline(admin.TabularInline):
 class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     fields = ('user', 'display_rank', 'badges', 'display_badge', 'about', 'organizations', 'vnoj_points', 'timezone',
               'language', 'ace_theme', 'math_engine', 'last_access', 'ip', 'mute', 'is_unlisted', 'allow_tagging',
-              'notes', 'username_display_override', 'ban_reason', 'is_totp_enabled', 'ip_auth', 'user_script',
-              'current_contest')
+              'notes', 'username_display_override', 'ban_reason', 'is_approved', 'is_totp_enabled', 'ip_auth',
+              'user_script', 'current_contest')
     readonly_fields = ('user',)
-    list_display = ('admin_user_admin', 'email', 'is_totp_enabled', 'timezone_full',
+    list_display = ('admin_user_admin', 'email', 'is_approved', 'is_totp_enabled', 'timezone_full',
                     'date_joined', 'last_access', 'ip', 'show_public')
     ordering = ('user__username',)
     search_fields = ('user__username', 'ip', 'user__email')
-    list_filter = ('language', TimezoneFilter)
-    actions = ('recalculate_points', 'recalulate_contribution_points')
+    list_filter = ('is_approved', 'language', TimezoneFilter)
+    actions = ('approve_users', 'recalculate_points', 'recalulate_contribution_points')
     actions_on_top = True
     actions_on_bottom = True
     form = ProfileForm
@@ -102,7 +103,12 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         fields = self.readonly_fields
         if not request.user.has_perm('judge.totp'):
             fields += ('is_totp_enabled',)
+        if not self.has_approve_permission(request):
+            fields += ('is_approved',)
         return fields
+
+    def has_approve_permission(self, request):
+        return request.user.has_perm('judge.approve_user')
 
     @admin.display(description='')
     def show_public(self, obj):
@@ -124,6 +130,22 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     @admin.display(description=_('date joined'), ordering='user__date_joined')
     def date_joined(self, obj):
         return obj.user.date_joined
+
+    def notify_approved(self, request, profiles):
+        failed = [profile.username for profile in profiles if not send_approval_email(profile, request)]
+        if failed:
+            self.message_user(request, gettext('Could not email approval to: %s') % ', '.join(failed),
+                              level=messages.WARNING)
+
+    @admin.action(description=_('Approve selected accounts'), permissions=['approve'])
+    def approve_users(self, request, queryset):
+        profiles = list(queryset.filter(is_approved=False).select_related('user'))
+        for profile in profiles:
+            profile.approve()
+        self.notify_approved(request, profiles)
+        self.message_user(request, ngettext('%d account was approved.',
+                                            '%d accounts were approved.',
+                                            len(profiles)) % len(profiles))
 
     @admin.display(description=_('Recalculate scores'))
     def recalculate_points(self, request, queryset):
@@ -159,6 +181,8 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         if form.changed_data and 'ban_reason' in form.changed_data and form.cleaned_data['ban_reason'] == '':
             obj.ban_reason = None
             obj.save()
+        if change and 'is_approved' in form.changed_data and obj.is_approved:
+            self.notify_approved(request, [obj])
 
 
 class UserAdmin(OldUserAdmin):

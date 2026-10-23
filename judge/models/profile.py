@@ -275,6 +275,9 @@ class Profile(models.Model):
                                       default=False)
     ban_reason = models.TextField(null=True, blank=True,
                                   help_text=_('Show to banned user in login page.'))
+    is_approved = models.BooleanField(verbose_name=_('approved'), default=True,
+                                      help_text=_('Unapproved users cannot log in. New accounts start unapproved '
+                                                  'when account approval is required.'))
     allow_tagging = models.BooleanField(verbose_name=_('Allow tagging'),
                                         help_text=_('User will be allowed to tag problems.'),
                                         default=True)
@@ -521,6 +524,12 @@ class Profile(models.Model):
 
     unban_user.alters_data = True
 
+    def approve(self):
+        self.is_approved = True
+        self.save(update_fields=['is_approved'])
+
+    approve.alters_data = True
+
     def get_absolute_url(self):
         return reverse('user_page', args=(self.user.username,))
 
@@ -550,6 +559,7 @@ class Profile(models.Model):
             ('long_contest_duration', _('Can set long contest duration')),
             ('create_mass_testcases', _('Can create unlimitted number of testcases for a problem')),
             ('ban_user', _('Ban users')),
+            ('approve_user', _('Approve user accounts')),
         )
         verbose_name = _('user profile')
         verbose_name_plural = _('user profiles')

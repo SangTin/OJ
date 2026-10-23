@@ -18,6 +18,7 @@ from social_django.middleware import SocialAuthExceptionMiddleware as OldSocialA
 
 from judge.forms import ProfileForm
 from judge.models import Language, Profile
+from judge.utils.account_approval import hold_for_approval, notify_account_approvers
 
 logger = logging.getLogger('judge.social_auth')
 
@@ -124,8 +125,11 @@ def make_profile(backend, user, response, is_new=False, *args, **kwargs):
         if not hasattr(user, 'profile'):
             profile = Profile(user=user)
             profile.language = Language.get_default_language()
+            needs_approval = hold_for_approval(profile)
             logger.info('Info from %s: %s', backend.name, response)
             profile.save()
+            if needs_approval:
+                notify_account_approvers(profile)
             form = ProfileForm(instance=profile, user=user)
         else:
             data = backend.strategy.request_data()

@@ -843,6 +843,10 @@ AUTHENTICATION_BACKENDS = (
 
 REGISTRATION_OPEN = True
 
+# When enabled, newly registered accounts (email or OAuth) cannot log in until a user with
+# the `judge.approve_user` permission approves them in the admin.
+VNOJ_REQUIRE_ACCOUNT_APPROVAL = False
+
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
