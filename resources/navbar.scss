@@ -426,7 +426,9 @@ nav {
         right: -2px;
     }
 
+    // Hidden until notification.js adds `.open` to the parent li (shown by notification.scss).
     .notification-panel {
+        display: none;
         position: absolute;
         top: 100%;
         right: 0;
