@@ -1,65 +1,18 @@
 import json
-import os
-import re
-import zipfile
 
 import yaml
-from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
-from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from judge.utils.problem_data_storage import ProblemDataStorage, StorageManager, split_path_first
 
-if os.altsep:
-    def split_path_first(path, repath=re.compile('[%s]' % re.escape(os.sep + os.altsep))):
-        return repath.split(path, 1)
-else:
-    def split_path_first(path):
-        return path.split(os.sep, 1)
-
-
-class ProblemDataStorage(FileSystemStorage):
-    def __init__(self):
-        super(ProblemDataStorage, self).__init__(settings.DMOJ_PROBLEM_DATA_ROOT)
-
-    def url(self, name):
-        path = split_path_first(name)
-        if len(path) != 2:
-            raise ValueError('This file is not accessible via a URL.')
-        return reverse('problem_data_file', args=path)
-
-    def _save(self, name, content):
-        if self.exists(name):
-            self.delete(name)
-        return super(ProblemDataStorage, self)._save(name, content)
-
-    def get_available_name(self, name, max_length=None):
-        return name
-
-    def rename(self, old, new):
-        return os.rename(self.path(old), self.path(new))
+__all__ = ['ProblemDataStorage', 'StorageManager']
 
 
 class ProblemDataError(Exception):
     def __init__(self, message):
         super(ProblemDataError, self).__init__(message)
         self.message = message
-
-
-def get_visible_content(archive, filename):
-    if archive.getinfo(filename).file_size <= settings.VNOJ_TESTCASE_VISIBLE_LENGTH:
-        data = archive.read(filename)
-    else:
-        data = archive.open(filename).read(settings.VNOJ_TESTCASE_VISIBLE_LENGTH) + b'...'
-    return data.decode('utf-8', errors='ignore')
-
-
-def get_testcase_data(archive, case):
-    return {
-        'input': get_visible_content(archive, case.input_file),
-        'answer': get_visible_content(archive, case.output_file),
-    }
 
 
 def get_problem_testcases_data(problem):
@@ -70,40 +23,7 @@ def get_problem_testcases_data(problem):
     """
     from judge.models import problem_data_storage
 
-    init_path = '%s/init.yml' % problem.code
-    if not problem_data_storage.exists(init_path):
-        return {}
-
-    init_content = yaml.safe_load(problem_data_storage.open(init_path).read())
-    archive_path = init_content.get('archive', None)
-    if not archive_path:
-        return {}
-
-    archive_path = '%s/%s' % (problem.code, archive_path)
-    if not problem_data_storage.exists(archive_path):
-        return {}
-
-    try:
-        archive = zipfile.ZipFile(problem_data_storage.open(archive_path))
-    except zipfile.BadZipfile:
-        return {}
-
-    testcases_data = {}
-
-    # TODO:
-    # - Support manually managed problems
-    # - Support pretest
-    order = 0
-    for case in problem.cases.all().order_by('order'):
-        try:
-            if not case.input_file:
-                continue
-            order += 1
-            testcases_data[order] = get_testcase_data(archive, case)
-        except Exception:
-            return {}
-
-    return testcases_data
+    return problem_data_storage.get_problem_metadata(problem)['testcases']
 
 
 class ProblemDataCompiler(object):
@@ -127,6 +47,7 @@ class ProblemDataCompiler(object):
 
         cases = []
         batch = None
+        batch_count = 0
 
         def end_batch():
             if not batch['batched']:
@@ -145,6 +66,8 @@ class ProblemDataCompiler(object):
 
                 if checker_ext not in ['cpp', 'pas', 'java']:
                     raise ProblemDataError(_('Only C++, Pascal, or Java checkers are supported.'))
+                if not case.checker_args:
+                    raise ProblemDataError(_('How did you corrupt the checker arguments?'))
 
             if case.checker_args:
                 return {
@@ -258,15 +181,32 @@ class ProblemDataCompiler(object):
                 case.save(update_fields=('checker_args', 'is_pretest'))
                 (batch['batched'] if batch else cases).append(data)
             elif case.type == 'S':
+                batch_count += 1
                 if batch:
                     end_batch()
                 if case.points is None:
                     raise ProblemDataError(_('Batch start case #%d requires points.') % i)
+                dependencies = []
+                if case.batch_dependencies.strip():
+                    try:
+                        dependencies = list(map(int, case.batch_dependencies.split(',')))
+                    except ValueError:
+                        raise ProblemDataError(
+                            _('Dependencies must be a comma-separated list of integers for batch start case #%d.') % i,
+                        )
+                    for batch_number in dependencies:
+                        if batch_number >= batch_count:
+                            raise ProblemDataError(
+                                _('Dependencies must depend on previous batches for batch start case #%d.') % i,
+                            )
+                        elif batch_number < 1:
+                            raise ProblemDataError(_('Dependencies must be positive for batch start case #%d.') % i)
                 total_points += case.points
                 batch = {
                     'points': case.points,
                     'batched': [],
                     'is_pretest': case.is_pretest,
+                    'dependencies': dependencies,
                 }
                 if case.generator_args:
                     batch['generator_args'] = case.generator_args.splitlines()
@@ -297,6 +237,15 @@ class ProblemDataCompiler(object):
             raise ProblemDataError(_('Total points must be greater than 0.'))
         if batch:
             end_batch()
+
+        # The judge numbers pretest batches differently when validating and when grading,
+        # so dependencies can only be resolved correctly when there are no pretest batches.
+        batches = [case for case in cases if 'batched' in case]
+        if any(batch['dependencies'] for batch in batches) and any(batch['is_pretest'] for batch in batches):
+            raise ProblemDataError(_('Batch dependencies are not supported for problems with pretest batches.'))
+        for batch in batches:
+            if not batch['dependencies']:
+                del batch['dependencies']
 
         init = {}
 
@@ -350,6 +299,8 @@ class ProblemDataCompiler(object):
 
     def compile(self):
         from judge.models import problem_data_storage
+
+        problem_data_storage.invalidate_problem_metadata(self.problem)
 
         yml_file = '%s/init.yml' % self.problem.code
         try:

@@ -210,7 +210,7 @@ class UserAboutPage(UserPage):
         timezone_offset = pytz.timezone(user_timezone).utcoffset(datetime.datetime.utcnow()).seconds
 
         submissions_count = self.object.submission_set.count()
-        if submissions_count > settings.VNOJ_LOW_POWER_MODE_CONFIG['heat_map_limit']:
+        if settings.VNOJ_LOW_POWER_MODE and submissions_count > settings.VNOJ_LOW_POWER_MODE_CONFIG['heat_map_limit']:
             submissions = []
         else:
             submissions = (
@@ -542,6 +542,20 @@ def generate_api_token(request):
 
 
 @require_POST
+def set_theme(request):
+    theme = request.POST.get('theme', 'light')
+    if theme not in ('light', 'dark', 'auto'):
+        theme = 'light'
+    response = HttpResponseRedirect(request.POST.get('next', '/'))
+    if request.user.is_authenticated:
+        request.profile.site_theme = theme
+        request.profile.save(update_fields=['site_theme'])
+    else:
+        response.set_cookie(settings.SITE_THEME_COOKIE_NAME, theme, max_age=settings.SITE_THEME_COOKIE_AGE)
+    return response
+
+
+@require_POST
 @login_required
 def remove_api_token(request):
     profile = request.profile
@@ -586,7 +600,7 @@ class UserList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin
     default_sort = '-rating'
 
     def get_queryset(self):
-        return (Profile.objects.filter(is_unlisted=False).order_by(self.order, 'id')
+        return (Profile.objects.filter(is_unlisted=False).order_by(self.order, self.id_tiebreak)
                 .prefetch_related(Prefetch('user', queryset=User.objects.only('username', 'first_name')))
                 .prefetch_related(Prefetch('organizations',
                                   queryset=Organization.objects.filter(is_unlisted=False).only('name', 'id', 'slug')))
@@ -610,7 +624,7 @@ class UserList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin
 user_list_view = UserList.as_view()
 
 
-class ContribList(QueryStringSortMixin, DiggPaginatorMixin, TitleMixin, ListView):
+class ContribList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin, TitleMixin, ListView):
     model = Profile
     title = gettext_lazy('Contributors')
     context_object_name = 'users'
@@ -621,7 +635,7 @@ class ContribList(QueryStringSortMixin, DiggPaginatorMixin, TitleMixin, ListView
     default_sort = '-contribution_points'
 
     def get_queryset(self):
-        return (Profile.objects.filter(is_unlisted=False).order_by(self.order, 'id')
+        return (Profile.objects.filter(is_unlisted=False).order_by(self.order, self.id_tiebreak)
                 .prefetch_related(Prefetch('user', queryset=User.objects.only('username', 'first_name')))
                 .prefetch_related(Prefetch('organizations',
                                   queryset=Organization.objects.filter(is_unlisted=False).only('name', 'id', 'slug')))
@@ -668,7 +682,7 @@ def user_ranking_redirect(request):
     else:
         rank = Profile.objects.filter(is_unlisted=False, rating__gt=user.rating).count()
     rank += Profile.objects.filter(
-        is_unlisted=False, rating__exact=user.rating, id__lt=user.id,
+        is_unlisted=False, rating__exact=user.rating, id__gt=user.id,
     ).count()
     page = rank // UserList.paginate_by
     return HttpResponseRedirect('%s%s#!%s' % (reverse('user_list'), '?page=%d' % (page + 1) if page else '', username))
@@ -682,7 +696,7 @@ def user_contributor_redirect(request):
     user = get_object_or_404(Profile, user__username=username)
     rank = Profile.objects.filter(is_unlisted=False, contribution_points__gt=user.contribution_points).count()
     rank += Profile.objects.filter(
-        is_unlisted=False, contribution_points__exact=user.contribution_points, id__lt=user.id,
+        is_unlisted=False, contribution_points__exact=user.contribution_points, id__gt=user.id,
     ).count()
     page = rank // ContribList.paginate_by
     return HttpResponseRedirect('%s%s#!%s' % (reverse('contributors_list'), '?page=%d' % (page + 1) if page else '',

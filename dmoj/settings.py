@@ -54,17 +54,47 @@ VNOJ_ORG_PP_STEP = 0.95
 VNOJ_ORG_PP_ENTRIES = 100
 VNOJ_ORG_PP_SCALE = 1
 
-VNOJ_ENABLE_API = False
-VNOJ_ENABLE_SYNC_API = True  # need to make this true for testing :sad:
+VNOJ_ENABLE_SYNC_API = False
 GLOBAL_API_KEY = 'test-api-key-123'
 
 VNOJ_OFFICIAL_CONTEST_MODE = False
+
+# Balloon color of each problem, shown in the contest balloons page.
+# Maps problem code to color name, e.g. {'icpc_a': 'red'}.
+# Leave empty to hide the color column.
+VNOJ_BALLOON_COLORS = {}
 
 # Contribution points function
 # Both should be int
 VNOJ_CP_COMMENT = 1   # Each comment vote equals 1 CP
 VNOJ_CP_TICKET = 10   # Each good ticket equals CP
-VNOJ_CP_PROBLEM = 20  # Each suggested problem equal 20 CP
+
+TICKET_AUTOFILL_REPLIES = [
+    {'en': 'No comments',
+     'vi': 'Không có nhận xét'},
+    {'en': 'Read the problem statement',
+     'vi': 'Đọc đề bài'},
+    {'en': 'Yes',
+     'vi': 'Có'},
+    {'en': 'No',
+     'vi': 'Không'},
+    {'en': 'Use English, please',
+     'vi': 'Vui lòng sử dụng tiếng Anh'},
+    {'en': 'Use Vietnamese, please',
+     'vi': 'Vui lòng sử dụng tiếng Việt'},
+    {'en': 'We could not understand your question',
+     'vi': 'Chúng tôi không hiểu câu hỏi của bạn'},
+    {'en': 'Read the global announcement',
+     'vi': 'Đọc thông báo chung'},
+    {'en': 'Unfortunately, we cannot answer this, as it will give you an unfair advantage',
+     'vi': 'Rất tiếc, chúng tôi không thể trả lời vì điều này sẽ tạo ra lợi thế không công bằng cho bạn'},
+    {'en': 'Your logic or calculations are incorrect, please check carefully',
+     'vi': 'Logic hoặc tính toán của bạn không chính xác, vui lòng kiểm tra lại'},
+    {'en': 'The examples and notes are correct',
+     'vi': 'Các ví dụ và ghi chú đều đúng'},
+    {'en': 'There is a queue of submissions being judged, please wait for your turn',
+     'vi': 'Đang có hàng đợi chấm bài, vui lòng chờ đến lượt của bạn'},
+]
 
 VNOJ_HOMEPAGE_TOP_USERS_COUNT = 5
 
@@ -101,7 +131,7 @@ VNOJ_BLOG_MIN_PROBLEM_COUNT = 10
 # Comment validation settings
 VNOJ_COMMENT_MIN_CONTRIBUTION = -20
 VNOJ_COMMENT_MIN_LENGTH = 10
-VNOJ_COMMENT_MAX_LENGTH = 10000
+VNOJ_COMMENT_MAX_LENGTH = 8196
 VNOJ_COMMENT_BLACKLIST_TERMS = []
 VNOJ_COMMENT_RATE_LIMIT_COUNT = None  # maximum number of comments allowed within the time window
 VNOJ_COMMENT_RATE_LIMIT_WINDOW = datetime.timedelta(seconds=600)
@@ -113,6 +143,9 @@ VNOJ_TAG_PROBLEM_MIN_RATING = 1900  # Minimum rating to be able to tag a problem
 VNOJ_SHOULD_BAN_FOR_CHEATING_IN_CONTESTS = False
 VNOJ_CONTEST_CHEATING_BAN_MESSAGE = 'Banned for multiple cheating offenses during contests'
 VNOJ_MAX_DISQUALIFICATIONS_BEFORE_BANNING = 3
+# Only count disqualifications from contests starting on or after this date.
+# Set to None to count all disqualifications regardless of date.
+VNOJ_BAN_COUNT_FROM_DATE = datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone.utc)
 
 # List of subdomain that will be ignored in organization subdomain middleware
 VNOJ_IGNORED_ORGANIZATION_SUBDOMAINS = ['oj', 'www', 'localhost']
@@ -124,7 +157,18 @@ VNOJ_ENABLE_ORGANIZATION_CREDIT_LIMITATION = False
 VNOJ_MONTHLY_FREE_CREDIT = 3 * 60 * 60
 VNOJ_PRICE_PER_HOUR = 50
 
-
+# Organization quota limits
+VNOJ_ORGANIZATION_DEFAULT_MAX_PROBLEMS = 1000
+VNOJ_ORGANIZATION_DEFAULT_MAX_STORAGE = 5 * 1024 * 1024 * 1024  # 5GB
+# Suffix appended to every inline quota-warning message. May contain HTML (e.g. a link to a guide).
+# Example: ' <a href="https://example.com/quota-guide">Read our guide</a>.'
+VNOJ_QUOTA_WARNING_SUFFIX = ''
+VNOJ_QUOTA_WARNING_THRESHOLD = 0.8
+# When False, quota warnings are shown but users are NOT blocked from creating problems
+# or uploading test data. Set to True to enforce hard limits.
+VNOJ_QUOTA_ENFORCEMENT_ENABLED = False
+VNOJ_QUOTA_PACKAGE_STORAGE = 5 * 1024 * 1024 * 1024  # 5 GB per package
+VNOJ_QUOTA_PACKAGE_PROBLEMS = 1000  # problems per package
 VNOJ_LONG_QUEUE_ALERT_THRESHOLD = 10
 
 # Low power mode: Optimize queries by limiting data scope for performance
@@ -135,6 +179,9 @@ VNOJ_LOW_POWER_MODE_CONFIG = {
     # avoid drawing heat map for users with too many submissions
     'heat_map_limit': 20_000,
 }
+
+# maximum number of problems in a contest
+MAX_CONTEST_PROBLEMS_COUNT = None
 
 VNOJ_MAGAZINE_TAG_SLUG = None
 
@@ -190,6 +237,10 @@ OJ_REQUESTS_TIMEOUT = 5  # in seconds
 
 OJAPI_CACHE_TIMEOUT = 3600  # Cache timeout for OJAPI data
 
+# External service to handle problem archiving
+VNOJ_PROBLEM_ARCHIVE_SERVICE_URL = None
+VNOJ_PROBLEM_ARCHIVE_SERVICE_TOKEN = None
+
 # Urls of discord webhook.
 # https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks
 DISCORD_WEBHOOK = {
@@ -197,7 +248,6 @@ DISCORD_WEBHOOK = {
     'on_new_ticket': None,
     'on_new_comment': None,
     'on_new_problem': None,
-    'on_new_suggested_problem': None,
     'on_new_tag_problem': None,
     'on_new_tag': None,
     'on_new_blogpost': None,
@@ -217,7 +267,10 @@ DMOJ_CAMO_KEY = None
 DMOJ_CAMO_HTTPS = False
 DMOJ_CAMO_EXCLUDE = ()
 
+# Deprecated, use DMOJ_STORAGE_CONFIG_PATH instead
 DMOJ_PROBLEM_DATA_ROOT = None
+# Path to YAML storage config file
+DMOJ_STORAGE_CONFIG_PATH = None
 
 DMOJ_PROBLEM_MIN_TIME_LIMIT = 0.01  # seconds
 DMOJ_PROBLEM_MAX_TIME_LIMIT = 60  # seconds
@@ -228,6 +281,9 @@ DMOJ_PROBLEM_HOT_PROBLEM_COUNT = 7
 
 # Grace period before a soft-deleted problem is permanently removed
 VNOJ_PROBLEM_DELETION_GRACE_PERIOD = datetime.timedelta(days=7)
+# How long archived data is kept in cold storage before the archiving job drops it for good.
+# Only used to tell users when their archived problems are due to expire; the job owns the real schedule.
+VNOJ_PROBLEM_ARCHIVE_RETENTION = datetime.timedelta(days=180)
 # Maximum time the garbage collection task is allowed to run per invocation
 VNOJ_PROBLEM_GARBAGE_COLLECTOR_TIME_LIMIT = datetime.timedelta(hours=1)
 VNOJ_PROBLEM_GARBAGE_COLLECTOR_CRONTAB_KWARGS = {'minute': 0, 'hour': 0}
@@ -267,6 +323,11 @@ DMOJ_CONTEST_DATA_CACHE = ''
 DMOJ_CONTEST_DATA_INTERNAL = ''
 DMOJ_CONTEST_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
 
+# directory to store replay JSON files;
+CONTEST_REPLAY_MEDIA_DIR = 'contest_replay'
+# Internal path to serve replay JSON files with X-Accel-Redirect
+DMOJ_CONTEST_REPLAY_INTERNAL = None
+
 DMOJ_COMMENT_VOTE_HIDE_THRESHOLD = -5
 DMOJ_COMMENT_REPLY_TIMEFRAME = datetime.timedelta(days=365)
 
@@ -280,6 +341,7 @@ DMOJ_STATS_LANGUAGE_THRESHOLD = 10
 DMOJ_STATS_SUBMISSION_RESULT_COLORS = {
     'TLE': '#a3bcbd',
     'AC': '#00a92a',
+    'PAC': '#c0e000',
     'WA': '#ed4420',
     'CE': '#42586d',
     'ERR': '#ffa71c',
@@ -300,6 +362,10 @@ DMOJ_THEME_DEFAULT_ACE_THEME = {
     'dark': 'twilight',
 }
 DMOJ_SELECT2_THEME = 'dmoj'
+
+# Cookie used to remember the site theme of anonymous (logged-out) users.
+SITE_THEME_COOKIE_NAME = 'site_theme'
+SITE_THEME_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
 
 MARKDOWN_STYLES = {}
 MARKDOWN_DEFAULT_STYLE = {}
@@ -462,6 +528,7 @@ INSTALLED_APPS += (
     'martor',
     'adminsortable2',
     'django_cleanup.apps.CleanupConfig',
+    'oauth2_provider',
 )
 
 MIDDLEWARE = (
@@ -592,11 +659,11 @@ BLEACH_USER_SAFE_TAGS = [
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col', 'tfoot',
     'img', 'audio', 'video', 'source',
     'a', 'strike',
-    'style', 'noscript', 'center', 'object', 'iframe',
+    'noscript', 'center', 'object', 'iframe',
 ]
 
 BLEACH_USER_SAFE_ATTRS = {
-    '*': ['id', 'class', 'style', 'data', 'height'],
+    '*': ['id', 'class', 'data', 'height'],
     'img': ['src', 'alt', 'title', 'width', 'height', 'data-src', 'align'],
     'a': ['href', 'alt', 'title'],
     'iframe': ['src', 'height', 'width', 'allow'],
@@ -640,7 +707,7 @@ MARKDOWN_DEFAULT_STYLE = {
     'bleach': {
         'tags': BLEACH_USER_SAFE_TAGS,
         'attributes': BLEACH_USER_SAFE_ATTRS,
-        'styles': True,
+        'styles': False,
         'mathml': True,
     },
 }
@@ -653,7 +720,7 @@ MARKDOWN_USER_LARGE_STYLE = {
     'bleach': {
         'tags': BLEACH_USER_SAFE_TAGS,
         'attributes': BLEACH_USER_SAFE_ATTRS,
-        'styles': True,
+        'styles': False,
         'mathml': True,
     },
 }
@@ -733,6 +800,8 @@ EVENT_DAEMON_KEY = None
 EVENT_DAEMON_AMQP_EXCHANGE = 'dmoj-events'
 EVENT_DAEMON_SUBMISSION_KEY = '6Sdmkx^%pk@GsifDfXcwX*Y7LRF%RGT8vmFpSxFBT$fwS7trc8raWfN#CSfQuKApx&$B#Gh2L7p%W!Ww'
 EVENT_DAEMON_CONTEST_KEY = '&w7hB-.9WnY2Jj^Qm+|?o6a<!}_2Wiw+?(_Yccqq{uR;:kWQP+3R<r(ICc|4^dDeEuJE{*D;Gg@K(4K>'
+EVENT_DAEMON_TICKET_KEY = '@R3DjH&egtm0HNhok6ERIMK!zlTzq2hrSGG2Se8SujCoO(2NX!DkbzcgQtm90FHDvpFM3gJ&D7acS$ta'
+EVENT_DAEMON_NOTIFICATION_KEY = 'm4l6v_%7j_%#abf&2#esiq@f_#2!cu54+gg%7y+g(fg--0=(hz'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -801,6 +870,8 @@ SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['first_name', 'last_name']
 IP_BASED_AUTHENTICATION_HEADER = 'REMOTE_ADDR'
 
 MOSS_API_KEY = None
+MOSS_HOST = 'moss.stanford.edu'
+MOSS_PORT = 7690
 
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
@@ -822,6 +893,20 @@ ACE_DEFAULT_LIGHT_THEME = DMOJ_THEME_DEFAULT_ACE_THEME['light']
 ACE_DEFAULT_DARK_THEME = DMOJ_THEME_DEFAULT_ACE_THEME['dark']
 # Only allow OAuth login
 OAUTH_ONLY = False
+
+# https://django-oauth-toolkit.readthedocs.io/en/latest/settings.html#settings
+OAUTH2_PROVIDER = {
+    'OAUTH2_VALIDATOR_CLASS': 'judge.oauth_validator.VNOIOAuthValidator',
+    'PKCE_REQUIRED': False,
+    # only required if using OpenID Connect
+    # 'OIDC_ENABLED': True,
+    # 'OIDC_RSA_PRIVATE_KEY': '',
+    'SCOPES': {
+        'openid': 'OpenID Connect',
+        'profile': 'Your profile',
+        'email': 'Your email address',
+    },
+}
 
 try:
     with open(os.path.join(os.path.dirname(__file__), 'local_settings.py')) as f:

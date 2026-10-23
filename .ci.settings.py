@@ -21,3 +21,5 @@ DATABASES = {
         },
     },
 }
+VNOJ_ENABLE_SYNC_API = True
+DMOJ_PROBLEM_DATA_ROOT = os.path.join(BASE_DIR, 'problem_data')
