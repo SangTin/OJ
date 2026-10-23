@@ -48,6 +48,15 @@ span.organization {
         width: 100%;
     }
 
+    td.user-rank, td.user-points, td.user-problems {
+        white-space: nowrap;
+    }
+
+    td.user-points, td.user-problems {
+        text-align: center;
+        min-width: 80px;
+    }
+
     .personal-info {
         a, span {
             color: $color_primary50;

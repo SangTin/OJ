@@ -63,11 +63,17 @@ class CustomTestRunView(LoginRequiredMixin, View):
         data = form.cleaned_data
         language = data.get("language")
 
+        # Keep only one history per user — delete old duplicates then update or create
+        histories = CustomTestHistory.objects.filter(user=request.user).order_by('-id')
+        if histories.count() > 1:
+            CustomTestHistory.objects.filter(user=request.user).exclude(id=histories.first().id).delete()
         CustomTestHistory.objects.update_or_create(
             user=request.user,
-            language=language,
-            code=data.get("source", ""),
-            input_data=data.get("input", "")
+            defaults={
+                'language': language,
+                'code': data.get("source", ""),
+                'input_data': data.get("input", ""),
+            }
         )
 
         try:
