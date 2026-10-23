@@ -10079,3 +10079,69 @@ msgstr ""
 
 msgid "Registration"
 msgstr "Đăng ký"
+
+msgid "Pending accounts"
+msgstr "Tài khoản chờ duyệt"
+
+#, python-format
+msgid "Your registration on %s was not approved"
+msgstr "Đăng ký của bạn trên %s không được duyệt"
+
+#, python-format
+msgid ""
+"Hello %(username)s,\n"
+"\n"
+"Your registration on %(site)s was not approved by an administrator, and the account has been removed."
+msgstr ""
+"Xin chào %(username)s,\n"
+"\n"
+"Đăng ký của bạn trên %(site)s không được quản trị viên duyệt, và tài khoản đã bị xoá."
+
+#, python-format
+msgid ""
+"%s has logged in before and cannot be rejected here. Handle this account in "
+"the admin instead."
+msgstr ""
+"%s đã từng đăng nhập nên không thể từ chối tại đây. Hãy xử lý tài khoản này "
+"trong trang quản trị."
+
+#, python-format
+msgid "Account %s was rejected and removed."
+msgstr "Đã từ chối và xoá tài khoản %s."
+
+msgid "Approve all pending accounts?"
+msgstr "Duyệt tất cả tài khoản đang chờ?"
+
+msgid "Approve all"
+msgstr "Duyệt tất cả"
+
+msgid "Email verified"
+msgstr "Đã xác nhận email"
+
+msgid "Registered"
+msgstr "Ngày đăng ký"
+
+msgid "The user has not clicked the activation link yet."
+msgstr "Người dùng chưa bấm vào link kích hoạt."
+
+msgid "Approve"
+msgstr "Duyệt"
+
+#, python-format
+msgid "Reject and delete account %(username)s? This cannot be undone."
+msgstr ""
+"Từ chối và xoá tài khoản %(username)s? Thao tác này không thể hoàn tác."
+
+msgid "Reject"
+msgstr "Từ chối"
+
+msgid "This account has logged in before. Handle it in the admin instead."
+msgstr "Tài khoản này đã từng đăng nhập. Hãy xử lý trong trang quản trị."
+
+msgid "There are no accounts waiting for approval."
+msgstr "Không có tài khoản nào đang chờ duyệt."
+
+#, python-format
+msgid "%(num)d account is waiting for approval."
+msgid_plural "%(num)d accounts are waiting for approval."
+msgstr[0] "Có %(num)d tài khoản đang chờ duyệt."

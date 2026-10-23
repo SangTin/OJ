@@ -1,6 +1,8 @@
+from django.contrib.auth.models import User
 from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from judge.forms import CustomAuthenticationForm
 from judge.models import MiscConfig, Notification, Profile
@@ -138,3 +140,71 @@ class ApprovalToggleTestCase(TestCase):
         self.client.post(reverse('misc_config'), {})
         self.assertFalse(approval_required())
         self.assertFalse(MiscConfig.objects.filter(key=APPROVAL_CONFIG_KEY).exists())
+
+
+class PendingAccountPageTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # An approver doesn't need staff or admin access, only the approve_user permission.
+        cls.approver = create_user(username='approver', user_permissions=('approve_user',))
+        cls.regular = create_user(username='regular')
+        cls.pending = create_user_with_password('pending', approved=False)
+        cls.pending_other = create_user_with_password('pending_other', approved=False)
+        cls.approved = create_user_with_password('approved')
+
+    def action(self, action, user=None):
+        data = {'action': action}
+        if user is not None:
+            data['id'] = user.profile.id
+        return self.client.post(reverse('account_approval_action'), data)
+
+    def is_approved(self, user):
+        return Profile.objects.get(user=user).is_approved
+
+    def test_requires_permission(self):
+        response = self.client.get(reverse('account_approval'))
+        self.assertEqual(response.status_code, 302)
+
+        self.client.force_login(self.regular)
+        self.assertEqual(self.client.get(reverse('account_approval')).status_code, 403)
+        self.assertEqual(self.action('approve', self.pending).status_code, 403)
+        self.assertFalse(self.is_approved(self.pending))
+
+    def test_lists_only_pending_accounts(self):
+        self.client.force_login(self.approver)
+        response = self.client.get(reverse('account_approval'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual({p.user.username for p in response.context['profiles']}, {'pending', 'pending_other'})
+
+    def test_approve_one(self):
+        self.client.force_login(self.approver)
+        response = self.action('approve', self.pending)
+        self.assertRedirects(response, reverse('account_approval'), fetch_redirect_response=False)
+        self.assertTrue(self.is_approved(self.pending))
+        self.assertFalse(self.is_approved(self.pending_other))
+        self.assertEqual([m.to for m in mail.outbox], [['pending@example.com']])
+
+    def test_approve_all(self):
+        self.client.force_login(self.approver)
+        self.action('approve_all')
+        self.assertTrue(self.is_approved(self.pending))
+        self.assertTrue(self.is_approved(self.pending_other))
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_reject_deletes_account_and_emails(self):
+        self.client.force_login(self.approver)
+        self.action('reject', self.pending)
+        self.assertFalse(User.objects.filter(username='pending').exists())
+        self.assertEqual([m.to for m in mail.outbox], [['pending@example.com']])
+
+    def test_reject_refuses_accounts_that_logged_in(self):
+        User.objects.filter(id=self.pending.id).update(last_login=timezone.now())
+        self.client.force_login(self.approver)
+        self.action('reject', self.pending)
+        self.assertTrue(User.objects.filter(username='pending').exists())
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_cannot_reject_approved_account(self):
+        self.client.force_login(self.approver)
+        self.assertEqual(self.action('reject', self.approved).status_code, 404)
+        self.assertTrue(User.objects.filter(username='approved').exists())

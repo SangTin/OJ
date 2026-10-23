@@ -39,14 +39,23 @@ def notify_account_approvers(profile):
     make_notification(
         account_approvers(),
         title=_('New account awaiting approval: %s') % profile.user.username,
-        url=reverse('admin:judge_profile_changelist') + '?is_approved__exact=0',
+        url=reverse('account_approval'),
     )
+
+
+def _email_user(user, subject, message):
+    if not user.email:
+        return False
+    try:
+        user.email_user(subject, message)
+    except Exception:
+        logger.exception('Failed to send account approval email to %s', user.username)
+        return False
+    return True
 
 
 def send_approval_email(profile, request):
     user = profile.user
-    if not user.email:
-        return False
     subject = _('Your account on %s has been approved') % settings.SITE_NAME
     message = _('Hello %(username)s,\n\n'
                 'Your account on %(site)s has been approved by an administrator. '
@@ -55,9 +64,15 @@ def send_approval_email(profile, request):
         'site': settings.SITE_LONG_NAME,
         'url': request.build_absolute_uri(reverse('auth_login')),
     }
-    try:
-        user.email_user(subject, message)
-    except Exception:
-        logger.exception('Failed to send approval email to %s', user.username)
-        return False
-    return True
+    return _email_user(user, subject, message)
+
+
+def send_rejection_email(user):
+    subject = _('Your registration on %s was not approved') % settings.SITE_NAME
+    message = _('Hello %(username)s,\n\n'
+                'Your registration on %(site)s was not approved by an administrator, '
+                'and the account has been removed.') % {
+        'username': user.username,
+        'site': settings.SITE_LONG_NAME,
+    }
+    return _email_user(user, subject, message)

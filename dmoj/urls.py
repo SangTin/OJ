@@ -14,6 +14,7 @@ from judge.sitemap import sitemaps
 from judge.views import TitledTemplateView, api, blog, comment, contests, customtest, language, license, mailgun, \
     notification, organization, preview, problem, problem_download, problem_manage, ranked_submission, register, \
     stats, status, submission, tag, tasks, ticket, two_factor, user, widgets
+from judge.views.account_approval import AccountApprovalAction, PendingAccountList
 from judge.views.magazine import MagazinePage
 from judge.views.misc_config import MiscConfigEdit
 from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
@@ -210,6 +211,8 @@ urlpatterns = [
         path('<int:page>', lambda request, page:
              HttpResponsePermanentRedirect('%s?page=%s' % (reverse('user_list'), page))),
         path('find', user.user_ranking_redirect, name='user_ranking_redirect'),
+        path('approval/', PendingAccountList.as_view(), name='account_approval'),
+        path('approval/action', AccountApprovalAction.as_view(), name='account_approval_action'),
     ])),
 
     path('user', user.UserAboutPage.as_view(), name='user_page'),
