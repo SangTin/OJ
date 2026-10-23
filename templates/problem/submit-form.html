@@ -72,9 +72,44 @@
         <span style="color: red">{{ _('No judge is available for this problem.') }}</span>
     {% else %}
         <div class="submit-bar">
+            <span id="run-inline-msg" style="font-size: 0.85em; display: none;"></span>
             {{ form.judge }}
+            <label id="custom-input-toggle" style="font-size: 0.9em; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="use-custom-input"> {{ _('Custom input') }}
+            </label>
+            <button type="button" id="run-code-btn" class="button">
+                <i class="fa fa-play"></i> {{ _('Run') }}
+            </button>
             <input type="submit" value="{{ _('Submit!') }}" class="button"
                    {% if request.in_contest and submission_limit and not submissions_left %}disabled{% endif %}>
         </div>
     {% endif %}
 </form>
+
+<div id="run-custom-input-area" style="display: none; margin-top: 10px;">
+    <textarea id="run-custom-input" rows="4" style="width: 100%; font-family: monospace; font-size: 13px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="{{ _('Enter your input here...') }}"></textarea>
+</div>
+
+<div id="run-code-output" style="display: none; margin-top: 15px;">
+    <div id="run-code-loading" style="display: none; padding: 10px;">
+        <i class="fa fa-spinner fa-pulse"></i> {{ _('Running...') }}
+    </div>
+    <div id="run-code-results" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0;">
+            <div id="run-results-header" style="font-weight: 600; font-size: 0.9em;"></div>
+            <div id="run-test-tabs" style="display: flex; gap: 4px; flex-wrap: wrap;"></div>
+            <div id="run-status-line" style="margin-left: auto; font-size: 0.85em; color: #64748b;"></div>
+        </div>
+        <div id="run-test-detail">
+            <table class="run-detail-table">
+                <tr id="run-input-row"><td class="run-label">{{ _('Input') }}</td><td><pre id="run-input-display" class="run-code-pre"></pre></td></tr>
+                <tr id="run-output-row"><td class="run-label">{{ _('Output') }}</td><td><pre id="run-stdout-display" class="run-code-pre"></pre></td></tr>
+                <tr id="run-compile-error" style="display: none;"><td class="run-label" style="color:#dc2626;">{{ _('Compile') }}</td><td><pre id="run-compile-display" class="run-code-pre"></pre></td></tr>
+            </table>
+        </div>
+    </div>
+    <div id="run-no-sample-msg" style="display: none; padding: 10px; color: #64748b;">
+        <i class="fa fa-info-circle"></i> {{ _('No sample test available.') }}
+    </div>
+    <div id="run-error-msg" style="display: none; padding: 10px; color: #dc2626;"></div>
+</div>
