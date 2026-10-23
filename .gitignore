@@ -55,3 +55,5 @@ sass_processed_classic/
 AGENTS.md
 CLAUDE.md
 *.env
+.DS_Store
+.review/

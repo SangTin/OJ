@@ -155,6 +155,24 @@ $(function () {
         $nav_list.removeClass('show-list');
     });
 
+    var $nav = $('#navigation');
+    var $userLinks = $('#user-links');
+    function updateNavOverflow() {
+        if (window.innerWidth <= 760) {
+            $nav.removeClass('nav-overflow');
+            return;
+        }
+        // Strip the class first so items are visible and measurable
+        $nav.removeClass('nav-overflow');
+        var lastItem = $nav_list[0].querySelector(':scope > li:last-child');
+        if (!lastItem) return;
+        var overflows = lastItem.getBoundingClientRect().right >= $userLinks[0].getBoundingClientRect().left - 8;
+        $nav.toggleClass('nav-overflow', overflows);
+        if (!overflows) $nav_list.removeClass('show-list');
+    }
+    updateNavOverflow();
+    $(window).on('resize', updateNavOverflow);
+
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type)) && !this.crossDomain)
@@ -233,12 +251,14 @@ $(function () {
 
     $('form').submit(function (evt) {
         // Prevent multiple submissions of forms, see #565
+        // Skip cancelled submits (e.g. a confirm/prompt returned false)
+        if (evt.isDefaultPrevented()) return;
         $("button[type=submit], input[type=submit]").prop('disabled', true);
     });
 });
 
 window.notification_template = {
-    icon: '/logo.png'
+    icon: '/static/icons/logo.png'
 };
 window.notification_timeout = 5000;
 

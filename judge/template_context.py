@@ -59,7 +59,7 @@ def __nav_tab(path):
 
 def general_info(request):
     path = request.get_full_path()
-    return {
+    info = {
         'nav_tab': FixedSimpleLazyObject(partial(__nav_tab, request.path)),
         'nav_bar': NavigationBar.objects.all(),
         'LOGIN_RETURN_PATH': '' if path.startswith('/accounts/') else path,
@@ -67,6 +67,10 @@ def general_info(request):
         'perms': PermWrapper(request.user),
         'HAS_WEBAUTHN': bool(settings.WEBAUTHN_RP_ID),
     }
+    if hasattr(request.user, 'profile'):
+        info['NOTIFICATION_SECRET'] = request.profile.notification_secret
+        info['UNREAD_NOTIFICATION_COUNT'] = request.profile.unread_notification_count
+    return info
 
 
 def site(request):
@@ -88,10 +92,12 @@ def site_theme(request):
     if hasattr(request.user, 'profile'):
         site_theme = request.profile.site_theme
     else:
-        site_theme = request.COOKIES.get('vnoj_site_theme', 'auto')
+        site_theme = request.COOKIES.get(settings.SITE_THEME_COOKIE_NAME, 'auto')
+        if site_theme not in settings.DMOJ_THEME_CSS and site_theme != 'auto':
+            site_theme = 'auto'
 
     is_modern = getattr(request, 'vnoj_ui_version', 'classic') == 'modern'
-    
+
     if is_modern:
         dark_css = settings.DMOJ_THEME_CSS['dark']
         light_css = settings.DMOJ_THEME_CSS['light']
@@ -106,6 +112,7 @@ def site_theme(request):
         'LIGHT_STYLE_CSS': light_css,
         'PREFERRED_STYLE_CSS': preferred_css,
         'SITE_THEME_NAME': site_theme,
+        'SITE_THEME_COOKIE_NAME': settings.SITE_THEME_COOKIE_NAME,
         'IS_MODERN_UI': is_modern,
     }
 

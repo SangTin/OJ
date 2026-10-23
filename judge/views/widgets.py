@@ -8,10 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, \
     HttpResponseRedirect
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from judge.models import Submission
-from martor.api import imgur_uploader
 
 __all__ = ['rejudge_submission']
 
@@ -23,11 +23,16 @@ def rejudge_submission(request):
         return HttpResponseBadRequest()
 
     try:
-        submission = Submission.objects.get(id=request.POST['id'])
+        submission = Submission.objects.select_related('problem').get(id=request.POST['id'])
     except Submission.DoesNotExist:
         return HttpResponseBadRequest()
 
-    if not submission.problem.is_rejudgeable_by(request.user):
+    problem = submission.problem
+
+    if problem.is_archived or problem.is_deleted:
+        return HttpResponseForbidden()
+
+    if not problem.is_rejudgeable_by(request.user):
         return HttpResponseForbidden()
 
     submission.judge(rejudge=True, rejudge_user=request.user)
@@ -84,7 +89,7 @@ def martor_image_uploader(request):
     if request.user.is_staff or request.user.has_perm('judge.can_upload_image'):
         data = django_uploader(image)
     else:
-        data = imgur_uploader(image)
+        return HttpResponseForbidden(_('You do not have permission to upload images'))
     return HttpResponse(data, content_type='application/json')
 
 
