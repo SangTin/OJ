@@ -10066,3 +10066,16 @@ msgstr "Duyệt các tài khoản đã chọn"
 msgid "%d account was approved."
 msgid_plural "%d accounts were approved."
 msgstr[0] "Đã duyệt %d tài khoản."
+
+msgid "Require account approval"
+msgstr "Yêu cầu duyệt tài khoản"
+
+msgid ""
+"New accounts cannot log in until an administrator approves them. Existing "
+"accounts are not affected."
+msgstr ""
+"Tài khoản mới không thể đăng nhập cho đến khi được quản trị viên duyệt. "
+"Không ảnh hưởng đến các tài khoản hiện có."
+
+msgid "Registration"
+msgstr "Đăng ký"

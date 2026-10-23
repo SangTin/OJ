@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
 
 from judge.models import MiscConfig
+from judge.utils.account_approval import APPROVAL_CONFIG_KEY
 from judge.utils.views import TitleMixin
 from judge.views.widgets import static_uploader
 
@@ -14,9 +15,17 @@ _TEXT_KEYS = [
     'announcement', 'footer', 'home_page_top', 'discord_invite_link',
     'discord_invite_shieldio', 'description_example',
 ]
+# Stored as '1' when checked; the key is removed when unchecked.
+_BOOL_KEYS = [APPROVAL_CONFIG_KEY]
 
 
 class MiscConfigForm(forms.Form):
+    require_account_approval = forms.BooleanField(
+        required=False,
+        label=_('Require account approval'),
+        help_text=_('New accounts cannot log in until an administrator approves them. '
+                    'Existing accounts are not affected.'),
+    )
     logo = forms.FileField(
         required=False,
         label=_('Site logo'),
@@ -97,6 +106,8 @@ class MiscConfigEdit(TitleMixin, FormView):
         initial = super().get_initial()
         for config in MiscConfig.objects.filter(key__in=_TEXT_KEYS):
             initial[config.key] = config.value
+        for config in MiscConfig.objects.filter(key__in=_BOOL_KEYS):
+            initial[config.key] = config.value == '1'
         return initial
 
     def get_context_data(self, **kwargs):
@@ -133,6 +144,12 @@ class MiscConfigEdit(TitleMixin, FormView):
                 if new_value:
                     MiscConfig.objects.update_or_create(key=key, defaults={'value': new_value})
                 elif key in current:
+                    MiscConfig.objects.filter(key=key).delete()
+
+            for key in _BOOL_KEYS:
+                if form.cleaned_data.get(key):
+                    MiscConfig.objects.update_or_create(key=key, defaults={'value': '1'})
+                else:
                     MiscConfig.objects.filter(key=key).delete()
         return super().form_valid(form)
 

@@ -1,11 +1,12 @@
 from django.core import mail
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from judge.forms import CustomAuthenticationForm
-from judge.models import Notification, Profile
+from judge.models import MiscConfig, Notification, Profile
 from judge.models.tests.util import create_user
-from judge.utils.account_approval import hold_for_approval, notify_account_approvers
+from judge.utils.account_approval import APPROVAL_CONFIG_KEY, approval_required, hold_for_approval, \
+    notify_account_approvers
 
 
 def create_user_with_password(username, password='correct-horse', approved=True, **kwargs):
@@ -69,14 +70,13 @@ class RegistrationApprovalTestCase(TestCase):
         cls.regular = create_user(username='regular')
         cls.newcomer = create_user(username='newcomer')
 
-    @override_settings(VNOJ_REQUIRE_ACCOUNT_APPROVAL=False)
     def test_no_hold_when_approval_not_required(self):
         profile = self.newcomer.profile
         self.assertFalse(hold_for_approval(profile))
         self.assertTrue(profile.is_approved)
 
-    @override_settings(VNOJ_REQUIRE_ACCOUNT_APPROVAL=True)
     def test_hold_and_notify_approvers(self):
+        MiscConfig.objects.create(key=APPROVAL_CONFIG_KEY, value='1')
         profile = self.newcomer.profile
         self.assertTrue(hold_for_approval(profile))
         self.assertFalse(profile.is_approved)
@@ -115,3 +115,26 @@ class AdminApproveActionTestCase(TestCase):
         self.pending.profile.refresh_from_db()
         self.assertFalse(self.pending.profile.is_approved)
         self.assertEqual(len(mail.outbox), 0)
+
+
+class ApprovalToggleTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = create_user(username='superuser', is_superuser=True, is_staff=True)
+
+    def test_toggle_from_site_settings(self):
+        self.client.force_login(self.superuser)
+        self.assertFalse(approval_required())
+
+        note = 'An administrator also needs to approve your account'
+        self.assertNotContains(self.client.get(reverse('registration_complete')), note)
+
+        self.client.post(reverse('misc_config'), {'require_account_approval': 'on'})
+        self.assertTrue(approval_required())
+        self.assertContains(self.client.get(reverse('registration_complete')), note)
+        response = self.client.get(reverse('misc_config'))
+        self.assertTrue(response.context['form'].initial['require_account_approval'])
+
+        self.client.post(reverse('misc_config'), {})
+        self.assertFalse(approval_required())
+        self.assertFalse(MiscConfig.objects.filter(key=APPROVAL_CONFIG_KEY).exists())

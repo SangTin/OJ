@@ -5,9 +5,16 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from judge.models import Profile, make_notification
+from judge.models import MiscConfig, Profile, make_notification
 
 logger = logging.getLogger('judge.account_approval')
+
+# MiscConfig key toggled from the site settings page; '1' means new accounts need approval.
+APPROVAL_CONFIG_KEY = 'require_account_approval'
+
+
+def approval_required():
+    return MiscConfig.objects.filter(key=APPROVAL_CONFIG_KEY, value='1').exists()
 
 
 def account_approvers():
@@ -22,7 +29,7 @@ def hold_for_approval(profile):
 
     Returns whether the profile now needs approval; pass it to `notify_account_approvers` once saved.
     """
-    if not settings.VNOJ_REQUIRE_ACCOUNT_APPROVAL:
+    if not approval_required():
         return False
     profile.is_approved = False
     return True
