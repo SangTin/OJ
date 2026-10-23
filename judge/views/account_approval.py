@@ -3,7 +3,6 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -27,7 +26,8 @@ class AccountApprovalPermissionMixin(LoginRequiredMixin):
 
 
 def pending_profiles():
-    return Profile.objects.filter(is_approved=False).select_related('user')
+    # Rejected accounts are banned and stay unapproved; they leave the list until an admin unbans them.
+    return Profile.objects.filter(is_approved=False, ban_reason__isnull=True).select_related('user')
 
 
 class PendingAccountList(AccountApprovalPermissionMixin, TitleMixin, ListView):
@@ -62,14 +62,8 @@ class AccountApprovalAction(AccountApprovalPermissionMixin, View):
                                            len(profiles)) % len(profiles))
 
     def reject(self, request, profile):
-        user = profile.user
-        # Only accounts that never logged in are deleted; anything else may already own submissions or other data.
-        if user.last_login is not None:
-            messages.error(request, _('%s has logged in before and cannot be rejected here. '
-                                      'Handle this account in the admin instead.') % user.username)
-            return
-        send_rejection_email(user)
-        with transaction.atomic():
-            user.delete()
-        logger.info('%s rejected and deleted account %s', request.user.username, user.username)
-        messages.success(request, _('Account %s was rejected and removed.') % user.username)
+        # Lock the account instead of deleting it, so nothing it may own is lost; an admin can unban it later.
+        profile.ban_user(_('Registration was not approved.'))
+        send_rejection_email(profile.user)
+        logger.info('%s rejected and locked account %s', request.user.username, profile.user.username)
+        messages.success(request, _('Account %s was rejected and locked.') % profile.user.username)

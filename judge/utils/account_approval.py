@@ -71,7 +71,7 @@ def send_rejection_email(user):
     subject = _('Your registration on %s was not approved') % settings.SITE_NAME
     message = _('Hello %(username)s,\n\n'
                 'Your registration on %(site)s was not approved by an administrator, '
-                'and the account has been removed.') % {
+                'and the account has been locked.') % {
         'username': user.username,
         'site': settings.SITE_LONG_NAME,
     }

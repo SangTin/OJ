@@ -191,18 +191,32 @@ class PendingAccountPageTestCase(TestCase):
         self.assertTrue(self.is_approved(self.pending_other))
         self.assertEqual(len(mail.outbox), 2)
 
-    def test_reject_deletes_account_and_emails(self):
-        self.client.force_login(self.approver)
-        self.action('reject', self.pending)
-        self.assertFalse(User.objects.filter(username='pending').exists())
-        self.assertEqual([m.to for m in mail.outbox], [['pending@example.com']])
-
-    def test_reject_refuses_accounts_that_logged_in(self):
+    def test_reject_locks_account_and_emails(self):
         User.objects.filter(id=self.pending.id).update(last_login=timezone.now())
         self.client.force_login(self.approver)
         self.action('reject', self.pending)
-        self.assertTrue(User.objects.filter(username='pending').exists())
-        self.assertEqual(len(mail.outbox), 0)
+
+        profile = Profile.objects.select_related('user').get(user=self.pending)
+        self.assertFalse(profile.user.is_active)
+        self.assertTrue(profile.is_banned)
+        self.assertFalse(profile.is_approved)
+        self.assertEqual([m.to for m in mail.outbox], [['pending@example.com']])
+
+        response = self.client.get(reverse('account_approval'))
+        self.assertEqual({p.user.username for p in response.context['profiles']}, {'pending_other'})
+
+        form = CustomAuthenticationForm(RequestFactory().post('/'),
+                                        data={'username': 'pending', 'password': 'correct-horse'})
+        self.assertFalse(form.is_valid())
+        self.assertTrue(form.has_error('__all__', 'banned'))
+
+    def test_unbanned_rejected_account_is_pending_again(self):
+        self.client.force_login(self.approver)
+        self.action('reject', self.pending)
+        Profile.objects.get(user=self.pending).unban_user()
+
+        response = self.client.get(reverse('account_approval'))
+        self.assertIn('pending', {p.user.username for p in response.context['profiles']})
 
     def test_cannot_reject_approved_account(self):
         self.client.force_login(self.approver)
