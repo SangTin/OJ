@@ -102,9 +102,6 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    {% if notification.url %}
-                        <div class="notification-page-item-url">{{ notification.url }}</div>
-                    {% endif %}
                 </a>
             {% else %}
                 <div class="notification-page-empty">{{ _('You have no notifications.') }}</div>
