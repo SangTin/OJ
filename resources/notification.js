@@ -38,6 +38,26 @@ $(function () {
         } catch (e) {}
     }
 
+    // Quick action buttons sent by the server, see judge/notification_actions.py.
+    function renderActions(n, $container, onDone) {
+        if (!n.actions || !n.actions.length) return;
+        var $actions = $('<div>').addClass('notification-item-actions').appendTo($container);
+        n.actions.forEach(function (action) {
+            $('<button>').attr('type', 'button').addClass('notification-action ' + action.style)
+                .text(action.label).on('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (action.confirm && !window.confirm(action.confirm)) return;
+                    $actions.find('button').prop('disabled', true);
+                    $.post(cfg.actionUrl, {id: n.id, action: action.name}).done(onDone).fail(function (xhr) {
+                        var error = xhr.responseJSON && xhr.responseJSON.error;
+                        $actions.empty().append($('<span>').addClass('notification-action-result').text(error || xhr.statusText));
+                        cfg.clearCache();
+                    });
+                }).appendTo($actions);
+        });
+    }
+
     function renderItem(n) {
         var $item = $('<a>').addClass('notification-item unread').attr('href', n.url || '#')
             .attr('data-id', n.id);
@@ -48,6 +68,13 @@ $(function () {
         if (n.time && window.moment) {
             $('<div>').addClass('notification-item-time').text(moment(n.time).fromNow()).appendTo($item);
         }
+        renderActions(n, $item, function (data) {
+            $item.find('.notification-item-actions').empty()
+                .append($('<span>').addClass('notification-action-result').text(data.message));
+            setBadge(data.unread_count);
+            cfg.clearCache();
+            setTimeout(function () { $item.remove(); }, 2000);
+        });
         $item.on('click', function (e) {
             if (!n.url) e.preventDefault();
             $.post(cfg.markReadUrl, {id: n.id, read: '1'}, function (data) {

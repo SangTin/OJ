@@ -1,15 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import ListView
 
 from judge.models import Notification
+from judge.notification_actions import NotificationActionError, display_title, get_actions, get_handler, \
+    serialize_actions
 from judge.utils.cache_helper import unread_notification_count_cache_factory
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.views import TitleMixin, paginate_query_context
 
-__all__ = ['NotificationList', 'NotificationAjax', 'NotificationMarkRead']
+__all__ = ['NotificationList', 'NotificationAjax', 'NotificationMarkRead', 'NotificationActionView']
 
 STATUS_CHOICES = ('all', 'unread', 'read')
 
@@ -48,6 +51,9 @@ class NotificationList(NotificationMixin, TitleMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['status'] = self.status
+        context['actions'] = {n.id: get_actions(n, self.request) for n in context['notifications'] if n.kind}
+        for notification in context['notifications']:
+            notification.title = display_title(notification)
         context.update(paginate_query_context(self.request))
         return context
 
@@ -59,11 +65,12 @@ class NotificationAjax(NotificationMixin, View):
         notifications = list(self.filtered_queryset()[:10])
         data = [{
             'id': n.id,
-            'title': n.title,
+            'title': display_title(n),
             'body': n.body,
             'url': n.url,
             'read': n.read,
             'time': n.time.isoformat(),
+            'actions': serialize_actions(n, request),
         } for n in notifications]
         return JsonResponse({
             'notifications': data,
@@ -88,3 +95,22 @@ class NotificationMarkRead(LoginRequiredMixin, View):
             queryset.filter(id=notification_id).update(read=read)
         unread_notification_count_cache_factory(profile.id).delete_cache()
         return JsonResponse({'unread_count': profile.unread_notification_count})
+
+
+class NotificationActionView(LoginRequiredMixin, View):
+    """Perform a quick action on one of the user's notifications, then mark it read."""
+
+    def post(self, request, *args, **kwargs):
+        profile = request.profile
+        notification = get_object_or_404(Notification, recipient=profile, id=request.POST.get('id'))
+        handler = get_handler(notification.kind)
+        action = request.POST.get('action')
+        if handler is None or action not in {a.name for a in handler.get_actions(notification, request)}:
+            return JsonResponse({'error': _('This action is no longer available.')}, status=400)
+        try:
+            message = handler.perform(notification, action, request)
+        except NotificationActionError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        Notification.objects.filter(id=notification.id).update(read=True)
+        unread_notification_count_cache_factory(profile.id).delete_cache()
+        return JsonResponse({'message': message, 'unread_count': profile.unread_notification_count})

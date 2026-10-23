@@ -34,12 +34,20 @@
     {% if profiles %}
         <div class="account-approval-toolbar">
             <span>{{ ngettext('%(num)d account is waiting for approval.', '%(num)d accounts are waiting for approval.', profiles|length) }}</span>
-            <form action="{{ url('account_approval_action') }}" method="post"
-                  onsubmit='return confirm({{ _("Approve all pending accounts?")|tojson }})'>
-                {% csrf_token %}
-                <input type="hidden" name="action" value="approve_all">
-                <button type="submit">{{ _('Approve all') }}</button>
-            </form>
+            <span class="account-approval-actions">
+                <form action="{{ url('account_approval_action') }}" method="post"
+                      onsubmit='return confirm({{ _("Approve all pending accounts?")|tojson }})'>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve_all">
+                    <button type="submit">{{ _('Approve all') }}</button>
+                </form>
+                <form action="{{ url('account_approval_action') }}" method="post"
+                      onsubmit='return confirm({{ _("Reject and lock all pending accounts?")|tojson }})'>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject_all">
+                    <button type="submit" class="reject-button">{{ _('Reject all') }}</button>
+                </form>
+            </span>
         </div>
         <div class="h-scrollable-table table-responsive">
             <table class="table">

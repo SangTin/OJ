@@ -99,6 +99,7 @@
                 clearCache: function () { try { localStorage.removeItem(this.cacheKey); } catch (e) {} },
                 ajaxUrl: '{{ url("notification_ajax") }}',
                 markReadUrl: '{{ url("notification_mark_read") }}',
+                actionUrl: '{{ url("notification_action") }}',
                 access: '{{ _("View") }}',
                 close: '{{ _("Close") }}',
                 empty: '{{ _("No notifications.") }}',

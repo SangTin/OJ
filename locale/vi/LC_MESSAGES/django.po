@@ -10136,3 +10136,33 @@ msgstr ""
 "Xin chào %(username)s,\n"
 "\n"
 "Đăng ký của bạn trên %(site)s không được quản trị viên duyệt, và tài khoản đã bị khoá."
+
+msgid "kind"
+msgstr "loại"
+
+msgid "data"
+msgstr "dữ liệu"
+
+msgid "Reject all"
+msgstr "Từ chối tất cả"
+
+msgid "Reject and lock all pending accounts?"
+msgstr "Từ chối và khoá tất cả tài khoản đang chờ?"
+
+msgid "Reject and lock this account?"
+msgstr "Từ chối và khoá tài khoản này?"
+
+msgid "This account has already been handled."
+msgstr "Tài khoản này đã được xử lý."
+
+#, python-format
+msgid "Account %s was approved."
+msgstr "Đã duyệt tài khoản %s."
+
+msgid "This action is no longer available."
+msgstr "Thao tác này không còn khả dụng."
+
+#, python-format
+msgid "%d account was rejected and locked."
+msgid_plural "%d accounts were rejected and locked."
+msgstr[0] "Đã từ chối và khoá %d tài khoản."

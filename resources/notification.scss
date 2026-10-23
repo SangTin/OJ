@@ -263,3 +263,35 @@
         }
     }
 }
+
+// Quick action buttons on a notification (see judge/notification_actions.py)
+.notification-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+
+    .notification-action {
+        display: inline-block;
+        margin: 0;
+        padding: 2px 10px;
+        font-size: 0.8em;
+        line-height: 1.6;
+        border-radius: 4px;
+
+        &.danger {
+            background: #c9302c;
+            border-color: #ac2925;
+
+            &:hover {
+                background: #ac2925;
+            }
+        }
+    }
+
+    .notification-action-result {
+        font-size: 0.85em;
+        font-style: italic;
+    }
+}

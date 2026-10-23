@@ -87,6 +87,7 @@ class RegistrationApprovalTestCase(TestCase):
         notify_account_approvers(profile)
         recipients = set(Notification.objects.values_list('recipient__user__username', flat=True))
         self.assertEqual(recipients, {'superuser', 'approver'})
+        self.assertEqual(set(Notification.objects.values_list('kind', flat=True)), {'account_approval'})
 
 
 class AdminApproveActionTestCase(TestCase):
@@ -222,3 +223,93 @@ class PendingAccountPageTestCase(TestCase):
         self.client.force_login(self.approver)
         self.assertEqual(self.action('reject', self.approved).status_code, 404)
         self.assertTrue(User.objects.filter(username='approved').exists())
+
+
+class ApprovalNotificationActionTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.approver = create_user(username='approver', user_permissions=('approve_user',))
+        cls.other_approver = create_user(username='other_approver', user_permissions=('approve_user',))
+        cls.regular = create_user(username='regular')
+        cls.pending = create_user_with_password('pending', approved=False)
+
+    def setUp(self):
+        notify_account_approvers(self.pending.profile)
+
+    def notification(self, user):
+        return Notification.objects.get(recipient__user=user)
+
+    def act(self, user, action):
+        return self.client.post(reverse('notification_action'), {'id': self.notification(user).id, 'action': action})
+
+    def ajax_actions(self):
+        response = self.client.get(reverse('notification_ajax'), {'status': 'all'})
+        return [[a['name'] for a in n['actions']] for n in response.json()['notifications']]
+
+    def test_notification_carries_actions(self):
+        notification = self.notification(self.approver)
+        self.assertEqual(notification.kind, 'account_approval')
+        self.assertEqual(notification.data, {'profile': self.pending.profile.id, 'username': 'pending'})
+        self.client.force_login(self.approver)
+        self.assertEqual(self.ajax_actions(), [['approve', 'reject']])
+
+    def test_title_is_rendered_when_displayed(self):
+        # The stored title is only a fallback; the handler renders it in the viewer's language.
+        Notification.objects.update(title='stored title')
+        self.client.force_login(self.approver)
+        titles = [n['title'] for n in self.client.get(reverse('notification_ajax')).json()['notifications']]
+        self.assertEqual(titles, ['New account awaiting approval: pending'])
+        self.assertContains(self.client.get(reverse('notification_list')), 'New account awaiting approval: pending')
+
+    def test_approve_from_notification_resolves_it_for_everyone(self):
+        self.client.force_login(self.approver)
+        response = self.act(self.approver, 'approve')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('pending', response.json()['message'])
+        self.assertTrue(Profile.objects.get(user=self.pending).is_approved)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertFalse(Notification.objects.filter(read=False).exists())
+
+        # The other approver's notification no longer offers actions, and acting on it fails cleanly.
+        self.client.force_login(self.other_approver)
+        self.assertEqual(self.ajax_actions(), [[]])
+        self.assertEqual(self.act(self.other_approver, 'reject').status_code, 400)
+        self.assertTrue(Profile.objects.get(user=self.pending).is_approved)
+
+    def test_reject_from_notification(self):
+        self.client.force_login(self.approver)
+        self.assertEqual(self.act(self.approver, 'reject').status_code, 200)
+        self.assertTrue(Profile.objects.get(user=self.pending).is_banned)
+
+    def test_needs_permission_and_ownership(self):
+        self.client.force_login(self.regular)
+        # Someone else's notification.
+        self.assertEqual(self.act(self.approver, 'approve').status_code, 404)
+
+        # A recipient who lost the permission gets no actions.
+        self.approver.user_permissions.clear()
+        self.client.force_login(User.objects.get(id=self.approver.id))
+        self.assertEqual(self.act(self.approver, 'approve').status_code, 400)
+        self.assertFalse(Profile.objects.get(user=self.pending).is_approved)
+
+    def test_notification_page_shows_buttons(self):
+        self.client.force_login(self.approver)
+        response = self.client.get(reverse('notification_list'))
+        self.assertContains(response, 'data-action="approve"')
+        self.assertContains(response, 'data-action="reject"')
+
+
+class RejectAllTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.approver = create_user(username='approver', user_permissions=('approve_user',))
+        cls.pending = create_user_with_password('pending', approved=False)
+        cls.pending_other = create_user_with_password('pending_other', approved=False)
+
+    def test_reject_all(self):
+        self.client.force_login(self.approver)
+        self.client.post(reverse('account_approval_action'), {'action': 'reject_all'})
+        for user in (self.pending, self.pending_other):
+            self.assertTrue(Profile.objects.get(user=user).is_banned)
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(list(self.client.get(reverse('account_approval')).context['profiles']), [])

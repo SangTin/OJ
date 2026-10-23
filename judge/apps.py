@@ -13,6 +13,8 @@ class JudgeAppConfig(AppConfig):
         #          DO NOT REMOVE THINKING THE IMPORT IS UNUSED.
         # noinspection PyUnresolvedReferences
         from . import signals, jinja2  # noqa: F401, imported for side effects
+        # Modules that register notification action handlers (see judge.notification_actions).
+        from judge.utils import account_approval  # noqa: F401, imported for side effects
 
         from judge.models import Language, Profile
         from django.contrib.auth.models import User

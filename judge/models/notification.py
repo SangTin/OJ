@@ -24,6 +24,9 @@ class Notification(models.Model):
     time = models.DateTimeField(verbose_name=_('creation time'), auto_now_add=True)
     read = models.BooleanField(verbose_name=_('is read?'), default=False)
     priority = models.IntegerField(verbose_name=_('priority'), default=Priority.DEFAULT)
+    # Optional quick actions: `kind` selects a handler in judge.notification_actions, `data` is its payload.
+    kind = models.CharField(verbose_name=_('kind'), max_length=50, blank=True, default='')
+    data = models.JSONField(verbose_name=_('data'), default=dict, blank=True)
 
     class Meta:
         ordering = ['-time']
@@ -38,17 +41,19 @@ class Notification(models.Model):
 
 
 def make_notification(recipients, title, body='', url='', popup=False,
-                      broadcast_channel=None, priority=Notification.Priority.DEFAULT):
+                      broadcast_channel=None, priority=Notification.Priority.DEFAULT, kind='', data=None):
     """Persist a notification for each recipient and push it over the event daemon.
 
     ``recipients`` may be a queryset or iterable of ``Profile`` (or profile ids).
     Pass ``broadcast_channel`` to post a single event to that channel instead of
     sending one event per recipient (use for large fanouts like contest announcements).
+    Pass ``kind`` and ``data`` to attach quick actions (see ``judge.notification_actions``).
     """
     profile_ids = [r.id if isinstance(r, Profile) else r for r in recipients]
 
     Notification.objects.bulk_create([
-        Notification(recipient_id=pid, title=title, body=body, url=url, priority=int(priority))
+        Notification(recipient_id=pid, title=title, body=body, url=url, priority=int(priority),
+                     kind=kind, data=data or {})
         for pid in profile_ids
     ])
 

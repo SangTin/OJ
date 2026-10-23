@@ -8,7 +8,7 @@ from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from reversion.admin import VersionAdmin
 
 from judge.models import Profile, WebAuthnCredential
-from judge.utils.account_approval import send_approval_email
+from judge.utils.account_approval import approve_profile, finish_approval
 from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminAceWidget, AdminMartorWidget, AdminSelect2MultipleWidget, AdminSelect2Widget
 
@@ -131,18 +131,16 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     def date_joined(self, obj):
         return obj.user.date_joined
 
-    def notify_approved(self, request, profiles):
-        failed = [profile.username for profile in profiles if not send_approval_email(profile, request)]
-        if failed:
-            self.message_user(request, gettext('Could not email approval to: %s') % ', '.join(failed),
+    def warn_unemailed(self, request, usernames):
+        if usernames:
+            self.message_user(request, gettext('Could not email approval to: %s') % ', '.join(usernames),
                               level=messages.WARNING)
 
     @admin.action(description=_('Approve selected accounts'), permissions=['approve'])
     def approve_users(self, request, queryset):
         profiles = list(queryset.filter(is_approved=False).select_related('user'))
-        for profile in profiles:
-            profile.approve()
-        self.notify_approved(request, profiles)
+        self.warn_unemailed(request, [profile.username for profile in profiles
+                                      if not approve_profile(profile, request)])
         self.message_user(request, ngettext('%d account was approved.',
                                             '%d accounts were approved.',
                                             len(profiles)) % len(profiles))
@@ -182,7 +180,8 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
             obj.ban_reason = None
             obj.save()
         if change and 'is_approved' in form.changed_data and obj.is_approved:
-            self.notify_approved(request, [obj])
+            if not finish_approval(obj, request):
+                self.warn_unemailed(request, [obj.username])
 
 
 class UserAdmin(OldUserAdmin):

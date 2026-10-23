@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
@@ -9,13 +7,10 @@ from django.urls import reverse
 from django.utils.translation import gettext as _, gettext_lazy, ngettext
 from django.views.generic import ListView, View
 
-from judge.models import Profile
-from judge.utils.account_approval import send_approval_email, send_rejection_email
+from judge.utils.account_approval import approve_profile, pending_profiles, reject_profile
 from judge.utils.views import TitleMixin
 
 __all__ = ['PendingAccountList', 'AccountApprovalAction']
-
-logger = logging.getLogger('judge.account_approval')
 
 
 class AccountApprovalPermissionMixin(LoginRequiredMixin):
@@ -23,11 +18,6 @@ class AccountApprovalPermissionMixin(LoginRequiredMixin):
         if request.user.is_authenticated and not request.user.has_perm('judge.approve_user'):
             raise PermissionDenied()
         return super().dispatch(request, *args, **kwargs)
-
-
-def pending_profiles():
-    # Rejected accounts are banned and stay unapproved; they leave the list until an admin unbans them.
-    return Profile.objects.filter(is_approved=False, ban_reason__isnull=True).select_related('user')
 
 
 class PendingAccountList(AccountApprovalPermissionMixin, TitleMixin, ListView):
@@ -49,21 +39,21 @@ class AccountApprovalAction(AccountApprovalPermissionMixin, View):
         elif action == 'approve_all':
             self.approve(request, pending_profiles())
         elif action == 'reject':
-            self.reject(request, get_object_or_404(pending_profiles(), id=request.POST.get('id')))
+            profile = get_object_or_404(pending_profiles(), id=request.POST.get('id'))
+            reject_profile(profile, request)
+            messages.success(request, _('Account %s was rejected and locked.') % profile.user.username)
+        elif action == 'reject_all':
+            profiles = list(pending_profiles())
+            for profile in profiles:
+                reject_profile(profile, request)
+            messages.success(request, ngettext('%d account was rejected and locked.',
+                                               '%d accounts were rejected and locked.',
+                                               len(profiles)) % len(profiles))
         return HttpResponseRedirect(reverse('account_approval'))
 
     def approve(self, request, queryset):
         profiles = list(queryset)
         for profile in profiles:
-            profile.approve()
-            send_approval_email(profile, request)
-            logger.info('%s approved account %s', request.user.username, profile.user.username)
+            approve_profile(profile, request)
         messages.success(request, ngettext('%d account was approved.', '%d accounts were approved.',
                                            len(profiles)) % len(profiles))
-
-    def reject(self, request, profile):
-        # Lock the account instead of deleting it, so nothing it may own is lost; an admin can unban it later.
-        profile.ban_user(_('Registration was not approved.'))
-        send_rejection_email(profile.user)
-        logger.info('%s rejected and locked account %s', request.user.username, profile.user.username)
-        messages.success(request, _('Account %s was rejected and locked.') % profile.user.username)

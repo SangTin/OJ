@@ -17,6 +17,27 @@
                 });
             });
 
+            // Quick actions, see judge/notification_actions.py.
+            $('.notification-page-item .notification-action').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $button = $(this);
+                if ($button.data('confirm') && !window.confirm($button.data('confirm'))) return;
+                var $actions = $button.closest('.notification-item-actions');
+                $actions.find('button').prop('disabled', true);
+                function showResult(text) {
+                    $actions.empty().append($('<span>').addClass('notification-action-result').text(text));
+                    if (cfg) cfg.clearCache();
+                }
+                $.post('{{ url("notification_action") }}', {id: $button.data('id'), action: $button.data('action')})
+                    .done(function (data) {
+                        showResult(data.message);
+                        $button.closest('.notification-page-item').removeClass('unread');
+                    }).fail(function (xhr) {
+                        showResult((xhr.responseJSON && xhr.responseJSON.error) || xhr.statusText);
+                    });
+            });
+
             $('.notification-page-item').on('click', function (e) {
                 var $item = $(this);
                 var id = $item.data('id');
@@ -72,6 +93,15 @@
                         <div class="notification-page-item-body">{{ notification.body }}</div>
                     {% endif %}
                     <div class="notification-page-item-time">{{ relative_time(notification.time) }}</div>
+                    {% if actions.get(notification.id) %}
+                        <div class="notification-item-actions">
+                            {% for action in actions[notification.id] %}
+                                <button type="button" class="notification-action {{ action.style }}"
+                                        data-id="{{ notification.id }}" data-action="{{ action.name }}"
+                                        data-confirm="{{ action.confirm }}">{{ action.label }}</button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     {% if notification.url %}
                         <div class="notification-page-item-url">{{ notification.url }}</div>
                     {% endif %}
