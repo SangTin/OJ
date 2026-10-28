@@ -333,9 +333,13 @@ class JudgeHandler(ZlibPacketHandler):
             logger.warning('Unknown submission: %s', id)
 
     def update_runtimes(self):
-        self.judge.runtimes.set(
-            Language.objects.filter(key__in=list(self.executors.keys())).values_list('id', flat=True),
-        )
+        known = dict(Language.objects.filter(key__in=list(self.executors.keys())).values_list('key', 'id'))
+        self.judge.runtimes.set(known.values())
+        unknown = sorted(set(self.executors) - set(known))
+        if unknown:
+            # These runtimes are ignored until a Language with the same key exists (see `manage.py add_languages`).
+            logger.info('Judge %s supports executors with no matching language on the site: %s',
+                        self.name, ', '.join(unknown))
 
         RuntimeVersion.objects.filter(judge=self.judge).delete()
         versions = []
