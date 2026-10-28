@@ -69,7 +69,7 @@ class DMOJLoginMiddleware(object):
                     request.path not in (login_2fa_path, logout_path, webauthn_path) and
                     not request.path.startswith(settings.STATIC_URL)):
                 return HttpResponseRedirect(login_2fa_path + '?next=' + quote(request.get_full_path()))
-            elif (request.session.get('password_pwned', False) and
+            elif ((request.session.get('password_pwned', False) or profile.must_change_password) and
                     request.path not in (change_password_path, change_password_done_path,
                                          login_2fa_path, logout_path) and
                     not request.path.startswith(settings.STATIC_URL) and

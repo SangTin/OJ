@@ -4,7 +4,7 @@ import openpyxl
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from judge.models import Profile
@@ -116,6 +116,7 @@ class ResolveRowsTestCase(TestCase):
         self.assertTrue(user.check_password('secret123'))
         self.assertEqual((user.email, user.first_name), ('new@example.com', 'New'))
         self.assertTrue(user.profile.is_approved)
+        self.assertTrue(user.profile.must_change_password)
         self.assertEqual(len(rows[1].password), 10)
         self.assertTrue(User.objects.get(username='gen').check_password(rows[1].password))
         self.assertEqual(set(org.members.values_list('user__username', flat=True)), {'new', 'gen'})
@@ -283,3 +284,41 @@ class BatchAddUserCommandTestCase(TestCase):
                 written = list(csv.DictReader(f))
         self.assertEqual([(r['username'], r['email']) for r in written], [('new', 'new@example.com')])
         self.assertTrue(User.objects.get(username='new').check_password(written[0]['password']))
+
+
+@override_settings(AUTH_PASSWORD_VALIDATORS=[])
+class MustChangePasswordTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = create_user(username='student')
+        cls.user.set_password('generated1')
+        cls.user.save()
+        Profile.objects.filter(user=cls.user).update(must_change_password=True)
+
+    def test_redirects_until_the_password_is_changed(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('problem_list'))
+        self.assertRedirects(response, reverse('password_change') + '?next=' + reverse('problem_list'),
+                             fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse('password_change')).status_code, 200)
+
+        self.client.post(reverse('password_change'), {
+            'old_password': 'generated1', 'new_password1': 'my-own-pass-2', 'new_password2': 'my-own-pass-2',
+        })
+        self.assertFalse(Profile.objects.get(user=self.user).must_change_password)
+        self.assertEqual(self.client.get(reverse('problem_list')).status_code, 200)
+
+    def test_any_new_password_clears_the_flag(self):
+        user = User.objects.get(id=self.user.id)
+        user.last_login = None
+        user.save(update_fields=['last_login'])
+        self.assertTrue(Profile.objects.get(user=user).must_change_password)
+
+        user.set_password('reset-by-email-1')  # e.g. the password reset link
+        user.save()
+        self.assertFalse(Profile.objects.get(user=user).must_change_password)
+
+    @override_settings(VNOJ_OFFICIAL_CONTEST_MODE=True)
+    def test_not_enforced_in_official_contest_mode(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(reverse('problem_list')).status_code, 200)

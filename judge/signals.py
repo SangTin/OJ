@@ -7,7 +7,8 @@ from django.contrib.flatpages.models import FlatPage
 from django.core.cache import cache
 from django.core.cache.utils import make_template_fragment_key
 from django.db import transaction
-from django.db.models.signals import m2m_changed, post_delete, post_save
+from django.contrib.auth.models import User
+from django.db.models.signals import m2m_changed, post_delete, post_save, pre_save
 from django.dispatch import receiver
 from registration.models import RegistrationProfile
 from registration.signals import user_registered
@@ -217,3 +218,13 @@ def registration_user_registered(sender, user, request, **kwargs):
         with transaction.atomic():
             user.save()
             profile.save()
+
+
+@receiver(pre_save, sender=User)
+def clear_must_change_password(sender, instance, update_fields=None, **kwargs):
+    # Any new password (change form, reset link, admin) satisfies Profile.must_change_password.
+    if instance.pk is None or (update_fields is not None and 'password' not in update_fields):
+        return
+    old_password = User.objects.filter(pk=instance.pk).values_list('password', flat=True).first()
+    if old_password is not None and old_password != instance.password:
+        Profile.objects.filter(user_id=instance.pk, must_change_password=True).update(must_change_password=False)

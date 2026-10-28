@@ -275,6 +275,9 @@ class Profile(models.Model):
                                       default=False)
     ban_reason = models.TextField(null=True, blank=True,
                                   help_text=_('Show to banned user in login page.'))
+    must_change_password = models.BooleanField(verbose_name=_('must change password'), default=False,
+                                               help_text=_('The user is sent to the password change page until '
+                                                           'they change their password.'))
     is_approved = models.BooleanField(verbose_name=_('approved'), default=True,
                                       help_text=_('Unapproved users cannot log in. New accounts start unapproved '
                                                   'when account approval is required.'))

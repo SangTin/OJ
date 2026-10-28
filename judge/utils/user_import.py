@@ -215,7 +215,8 @@ def create_accounts(rows, organization=None):
             user = User(username=row.username, email=row.email, first_name=row.fullname, is_active=True)
             user.set_password(row.password)
             user.save()
-            row.profile = Profile.objects.create(user=user, language=language)
+            # The password went through a file or an email, so the user has to pick their own.
+            row.profile = Profile.objects.create(user=user, language=language, must_change_password=True)
             if organization is not None:
                 row.profile.organizations.add(organization)
             created.append(row)
@@ -283,7 +284,7 @@ def send_credentials_emails(rows, request):
                     'An account has been created for you on %(site)s.\n\n'
                     'Username: %(username)s\n'
                     'Password: %(password)s\n\n'
-                    'Log in at %(url)s and change your password afterwards.') % {
+                    'Log in at %(url)s; you will be asked to choose a new password.') % {
             'name': row.fullname or row.username, 'site': settings.SITE_LONG_NAME,
             'username': row.username, 'password': row.password, 'url': login_url,
         }
