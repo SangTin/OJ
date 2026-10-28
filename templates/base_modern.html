@@ -445,10 +445,6 @@
                                 <li><a href="{{ url('admin:index') }}"><i class="fa fa-shield"></i> {{ _('Admin')
                                         }}</a></li>
                                 {% endif %}
-                                {% if perms.judge.approve_user %}
-                                {% set pending_count = pending_account_count() %}
-                                <li><a href="{{ url('account_approval') }}"><i class="fa fa-user-plus"></i> {{ _('Pending accounts') }}{% if pending_count %} <span class="nav-badge">{{ pending_count }}</span>{% endif %}</a></li>
-                                {% endif %}
                                 <li><a href="{{ url('user_edit_profile') }}"><i class="fa fa-edit"></i> {{ _('Edit
                                         profile')
                                         }}</a></li>

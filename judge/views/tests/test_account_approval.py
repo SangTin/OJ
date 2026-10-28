@@ -342,6 +342,8 @@ class PendingAccountNavigationTestCase(TestCase):
         self.client.force_login(self.approver)
         response = self.client.get(reverse('problem_list'))
         self.assertContains(response, 'href="/users/approval/" class="nav-approval')
+        # Only the Users tab links there; the user menu doesn't repeat it.
+        self.assertContains(response, 'href="/users/approval/"', count=1)
         self.assertContains(response, '<span class="nav-badge">2</span>')
 
         self.client.force_login(self.regular)

@@ -349,10 +349,6 @@
                             {% if request.user.is_staff or request.user.is_superuser %}
                                 <li><a href="{{ url('admin:index') }}">{{ _('Admin') }}</a></li>
                             {% endif %}
-                            {% if perms.judge.approve_user %}
-                                {% set pending_count = pending_account_count() %}
-                                <li><a href="{{ url('account_approval') }}">{{ _('Pending accounts') }}{% if pending_count %} <span class="nav-badge">{{ pending_count }}</span>{% endif %}</a></li>
-                            {% endif %}
                             <li><a href="{{ url('user_edit_profile') }}">{{ _('Edit profile') }}</a></li>
                             {% if request.user.is_impersonate %}
                                 <li><a href="{{ url('impersonate-stop') }}">{{ _('Stop impersonating') }}</a></li>

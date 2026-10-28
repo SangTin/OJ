@@ -12,7 +12,6 @@ from statici18n.templatetags.statici18n import inlinei18n
 
 from judge.highlight_code import highlight_code
 from judge.user_translations import gettext
-from judge.utils.account_approval import pending_account_count
 from judge.utils.navigation import nav_tree
 from . import (camo, datetime, filesize, format, gravatar, language, markdown, rating, reference, render, social,
                spaceless, submission, timedelta)
@@ -28,7 +27,6 @@ registry.function('ordinal', lambda n: '%d%s' % (n, 'tsnrhtdd'[(n // 10 % 10 != 
 registry.function('inlinei18n', inlinei18n)
 registry.function('mptt_tree', get_cached_trees)
 registry.function('nav_tree', nav_tree)
-registry.function('pending_account_count', pending_account_count)
 registry.function('user_trans', gettext)
 
 
