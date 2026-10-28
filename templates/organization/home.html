@@ -124,6 +124,9 @@
                             </div>
                         {% endif %}
                         <div>
+                            <a href="{{ url('organization_user_import', organization.slug) }}">{{ _('Import users') }}</a>
+                        </div>
+                        <div>
                             <a href="{{ url('edit_organization', organization.slug) }}">{{ _('Edit organization') }}</a>
                         </div>
                     {% endif %}

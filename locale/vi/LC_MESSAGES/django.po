@@ -10176,3 +10176,228 @@ msgid ""
 msgstr ""
 "Chỉ hiện mục này cho người dùng có quyền này, ví dụ judge.approve_user. Để "
 "trống để hiện cho mọi người."
+
+msgid "Could not read the Excel file."
+msgstr "Không đọc được file Excel."
+
+msgid "The CSV file must be UTF-8 encoded."
+msgstr "File CSV phải dùng mã hoá UTF-8."
+
+msgid "Only .xlsx and .csv files are supported."
+msgstr "Chỉ hỗ trợ file .xlsx và .csv."
+
+msgid "The file is empty."
+msgstr "File trống."
+
+#, python-format
+msgid ""
+"The file has no \"email\" column. The first row must contain the column "
+"names: %s."
+msgstr "File không có cột \"email\". Dòng đầu tiên phải chứa tên các cột: %s."
+
+msgid "The file has no rows besides the column names."
+msgstr "File không có dòng dữ liệu nào ngoài dòng tên cột."
+
+#, python-format
+msgid "The file has %(count)d rows; at most %(max)d are allowed at once."
+msgstr "File có %(count)d dòng; mỗi lần chỉ được tối đa %(max)d dòng."
+
+msgid "Missing email."
+msgstr "Thiếu email."
+
+msgid "Invalid email address."
+msgstr "Email không hợp lệ."
+
+#, python-format
+msgid "Duplicate of the email on line %d."
+msgstr "Trùng email với dòng %d."
+
+msgid "Several accounts use this email."
+msgstr "Có nhiều tài khoản dùng email này."
+
+#, python-format
+msgid "Full name is longer than %d characters."
+msgstr "Họ tên dài quá %d ký tự."
+
+#, python-format
+msgid ""
+"A username may only contain letters, numbers and underscores (at most %d)."
+msgstr "Tên đăng nhập chỉ được gồm chữ, số và dấu gạch dưới (tối đa %d ký tự)."
+
+#, python-format
+msgid "Username %s is already taken."
+msgstr "Tên đăng nhập %s đã được dùng."
+
+#, python-format
+msgid "Your account on %s"
+msgstr "Tài khoản của bạn trên %s"
+
+#, python-format
+msgid ""
+"Hello %(name)s,\n"
+"\n"
+"An account has been created for you on %(site)s.\n"
+"\n"
+"Username: %(username)s\n"
+"Password: %(password)s\n"
+"\n"
+"Log in at %(url)s and change your password afterwards."
+msgstr ""
+"Xin chào %(name)s,\n"
+"\n"
+"Một tài khoản đã được tạo cho bạn trên %(site)s.\n"
+"\n"
+"Tên đăng nhập: %(username)s\n"
+"Mật khẩu: %(password)s\n"
+"\n"
+"Hãy đăng nhập tại %(url)s và đổi mật khẩu sau khi đăng nhập."
+
+#, python-format
+msgid "Already has an account: %s"
+msgstr "Đã có tài khoản: %s"
+
+#, python-format
+msgid "New account: %s"
+msgstr "Tài khoản mới: %s"
+
+msgid "No account uses this email."
+msgstr "Chưa có tài khoản nào dùng email này."
+
+msgid "Choose a file to upload."
+msgstr "Hãy chọn file để tải lên."
+
+msgid "The preview has expired. Please upload the file again."
+msgstr "Bản xem trước đã hết hạn. Hãy tải file lên lại."
+
+msgid "Import users"
+msgstr "Nhập người dùng"
+
+#, python-format
+msgid "Import users into %s"
+msgstr "Nhập người dùng vào %s"
+
+#, python-format
+msgid "Already a member: %s"
+msgstr "Đã là thành viên: %s"
+
+#, python-format
+msgid "Already has an account: %s (left unchanged)"
+msgstr "Đã có tài khoản: %s (giữ nguyên)"
+
+msgid "Add contestants from a file"
+msgstr "Thêm thí sinh từ file"
+
+#, python-format
+msgid "Already in the list: %s"
+msgstr "Đã có trong danh sách: %s"
+
+#, python-format
+msgid "%(user)s is not a member of %(org)s."
+msgstr "%(user)s không thuộc tổ chức %(org)s."
+
+msgid "New account"
+msgstr "Tạo mới"
+
+msgid "Added"
+msgstr "Đã thêm"
+
+msgid "Will be added"
+msgstr "Sẽ thêm"
+
+msgid "Skipped"
+msgstr "Bỏ qua"
+
+msgid "Line"
+msgstr "Dòng"
+
+#, python-format
+msgid ""
+"Created: %(create)d, added: %(add)d, skipped: %(skip)d, errors: %(error)d."
+msgstr ""
+"Đã tạo: %(create)d, đã thêm: %(add)d, bỏ qua: %(skip)d, lỗi: %(error)d."
+
+#, python-format
+msgid ""
+"New accounts: %(create)d, will be added: %(add)d, skipped: %(skip)d, errors: "
+"%(error)d."
+msgstr ""
+"Tạo mới: %(create)d, sẽ thêm: %(add)d, bỏ qua: %(skip)d, lỗi: %(error)d."
+
+msgid ""
+"Upload an Excel (.xlsx) or CSV file. Its first row must hold the column "
+"names:"
+msgstr ""
+"Tải lên file Excel (.xlsx) hoặc CSV. Dòng đầu tiên phải là tên các cột:"
+
+msgid "Required. Rows without a valid email are reported as errors."
+msgstr "Bắt buộc. Dòng không có email hợp lệ sẽ báo lỗi."
+
+msgid "Optional. Generated from the email when empty."
+msgstr "Không bắt buộc. Để trống thì tự sinh từ email."
+
+msgid "Optional."
+msgstr "Không bắt buộc."
+
+msgid "Optional. A random password is generated when empty."
+msgstr "Không bắt buộc. Để trống thì sinh mật khẩu ngẫu nhiên."
+
+msgid ""
+"If an email already has an account, that account is used and the username, "
+"fullname and password in the file are ignored."
+msgstr ""
+"Nếu email đã có tài khoản thì dùng tài khoản đó, bỏ qua username, fullname và"
+" password trong file."
+
+#, python-format
+msgid ""
+"At most %(max)d rows per file. Nothing is saved until you confirm the "
+"preview."
+msgstr ""
+"Tối đa %(max)d dòng mỗi file. Chưa có gì được lưu cho đến khi bạn xác nhận "
+"bản xem trước."
+
+msgid ""
+"You can only add existing accounts here; emails without an account are "
+"reported as errors."
+msgstr ""
+"Ở đây bạn chỉ thêm được tài khoản đã có; email chưa có tài khoản sẽ báo lỗi."
+
+#, python-format
+msgid "New accounts join %(org)s."
+msgstr "Tài khoản mới sẽ được thêm vào %(org)s."
+
+msgid "Email the login details to each new account"
+msgstr "Gửi email thông tin đăng nhập cho từng tài khoản mới"
+
+msgid "Upload another file"
+msgstr "Tải file khác"
+
+msgid "Confirm"
+msgstr "Xác nhận"
+
+msgid "Download the new accounts (.xlsx)"
+msgstr "Tải danh sách tài khoản mới (.xlsx)"
+
+msgid ""
+"This file holds the passwords and can only be downloaded for the next hour."
+msgstr "File này chứa mật khẩu và chỉ tải được trong vòng 1 giờ tới."
+
+#, python-format
+msgid "Could not email: %(users)s"
+msgstr "Không gửi được email cho: %(users)s"
+
+msgid "The login details were emailed to the new accounts."
+msgstr "Đã gửi email thông tin đăng nhập cho các tài khoản mới."
+
+msgid "Done"
+msgstr "Xong"
+
+msgid "Add from file"
+msgstr "Thêm từ file"
+
+msgid "Create user accounts in bulk"
+msgstr "Tạo tài khoản hàng loạt"
+
+#, python-format
+msgid "Existing account: %s"
+msgstr "Tài khoản có sẵn: %s"

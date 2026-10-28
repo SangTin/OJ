@@ -49,3 +49,4 @@ django-oauth-toolkit
 # Newer cryptography (pulled in by django-storages/django-oauth-toolkit) breaks the site; jwcrypto>=1.6.1 needs it.
 cryptography==45.0.5
 jwcrypto<1.6.1
+openpyxl==3.1.5

@@ -294,6 +294,54 @@
         });
     </script>
     {{ form.media.js }}
+    {% if contest is defined and contest and contest.pk %}
+        {% set contestant_import_url = url('contest_contestant_import', contest.key) %}
+    {% elif contest_org %}
+        {% set contestant_import_url = url('organization_contestant_import', contest_org.slug) %}
+    {% else %}
+        {% set contestant_import_url = url('contestant_import') %}
+    {% endif %}
+    <script>
+        // "Add from file": a popup (user/import/popup.html) that creates missing accounts and hands the
+        // contestants back here; they are saved together with the rest of the contest form.
+        $(function () {
+            var $field = $('#id_private_contestants');
+            if (!$field.length) return;
+
+            var $modal = $('<div id="contestant-import-modal"><div class="contestant-import-dialog">' +
+                '<a href="#" class="contestant-import-close">&times;</a><iframe></iframe></div></div>').appendTo('body');
+            var $button = $('<button type="button" class="button contestant-import-open"></button>')
+                .text({{ _('Add from file')|tojson }});
+            $field.closest('td').append($('<div class="contestant-import-actions"></div>').append($button));
+
+            $button.on('click', function () {
+                var current = ($field.val() || []).join(',');
+                $modal.find('iframe').attr('src', '{{ contestant_import_url }}?current=' + encodeURIComponent(current));
+                $modal.addClass('open');
+            });
+
+            window.closeContestantImport = function () {
+                $modal.removeClass('open');
+                $modal.find('iframe').attr('src', 'about:blank');
+            };
+            $modal.on('click', '.contestant-import-close', function (e) {
+                e.preventDefault();
+                window.closeContestantImport();
+            });
+
+            window.addImportedContestants = function (contestants) {
+                var selected = new Set(($field.val() || []).map(String));
+                contestants.forEach(function (contestant) {
+                    if (selected.has(String(contestant.id))) return;
+                    selected.add(String(contestant.id));
+                    $field.select2('trigger', 'select', {data: contestant});
+                });
+                if (contestants.length) {
+                    $('#id_is_private').prop('checked', true).trigger('change');
+                }
+            };
+        });
+    </script>
 {% endblock %}
 
 {% block media %}
@@ -302,6 +350,51 @@
     {{ form.media.css }}
     <link rel="stylesheet" type="text/css" href="{{ static('ui_form.css') }}">
     <style>
+        .contestant-import-actions {
+            margin-top: 6px;
+        }
+
+        #contestant-import-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #contestant-import-modal.open {
+            display: flex;
+        }
+
+        #contestant-import-modal .contestant-import-dialog {
+            position: relative;
+            width: min(1000px, 95vw);
+            height: 85vh;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #contestant-import-modal iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        #contestant-import-modal .contestant-import-close {
+            position: absolute;
+            top: 6px;
+            right: 12px;
+            font-size: 26px;
+            line-height: 1;
+            text-decoration: none;
+            color: #555;
+            z-index: 1;
+        }
+
         body.dragging, body.dragging * {
             cursor: move !important;
         }
