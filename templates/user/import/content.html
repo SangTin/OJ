@@ -1,0 +1,141 @@
+{% macro hidden_inputs() %}
+    {% csrf_token %}
+    {% for name, value in hidden_fields.items() %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {% endfor %}
+{% endmacro %}
+
+{% macro status_label(row, done) %}
+    {%- if row.status == STATUS_CREATE -%}
+        <span class="user-import-status create">{{ _('Created') if done else _('New account') }}</span>
+    {%- elif row.status == STATUS_ADD -%}
+        <span class="user-import-status add">{{ _('Added') if done else _('Will be added') }}</span>
+    {%- elif row.status == STATUS_SKIP -%}
+        <span class="user-import-status skip">{{ _('Skipped') }}</span>
+    {%- else -%}
+        <span class="user-import-status error">{{ _('Error') }}</span>
+    {%- endif -%}
+{% endmacro %}
+
+{% macro rows_table(rows, done) %}
+    <div class="h-scrollable-table table-responsive">
+        <table class="table user-import-table">
+            <thead>
+            <tr>
+                <th>{{ _('Line') }}</th>
+                <th>email</th>
+                <th>username</th>
+                <th>fullname</th>
+                <th>{{ _('Status') }}</th>
+                <th>{{ _('Details') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+                <tr class="user-import-row {{ row.status }}">
+                    <td>{{ row.line }}</td>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.profile.user.username if row.profile else row.username }}</td>
+                    <td>{{ row.profile.user.first_name if row.profile else row.fullname }}</td>
+                    <td>{{ status_label(row, done) }}</td>
+                    <td>{{ row.error or row.note }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+
+{% macro summary_line(summary, done) %}
+    <p class="user-import-summary">
+        {% if done %}
+            {{ _('Created: %(create)d, added: %(add)d, skipped: %(skip)d, errors: %(error)d.', create=summary.create, add=summary.add, skip=summary.skip, error=summary.error) }}
+        {% else %}
+            {{ _('New accounts: %(create)d, will be added: %(add)d, skipped: %(skip)d, errors: %(error)d.', create=summary.create, add=summary.add, skip=summary.skip, error=summary.error) }}
+        {% endif %}
+    </p>
+{% endmacro %}
+
+<div class="user-import">
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if step == 'upload' %}
+        <form method="post" enctype="multipart/form-data">
+            {{ hidden_inputs() }}
+            <input type="hidden" name="step" value="preview">
+            <p>{{ _('Upload an Excel (.xlsx) or CSV file. Its first row must hold the column names:') }}</p>
+            <table class="table user-import-columns">
+                <tr><th>email</th><td>{{ _('Required. Rows without a valid email are reported as errors.') }}</td></tr>
+                <tr><th>username</th><td>{{ _('Optional. Generated from the email when empty.') }}</td></tr>
+                <tr><th>fullname</th><td>{{ _('Optional.') }}</td></tr>
+                <tr><th>password</th><td>{{ _('Optional. A random password is generated when empty.') }}</td></tr>
+            </table>
+            <ul class="user-import-help">
+                <li>{{ _('If an email already has an account, that account is used and the username, fullname and password in the file are ignored.') }}</li>
+                <li>{{ _('At most %(max)d rows per file. Nothing is saved until you confirm the preview.', max=max_rows) }}</li>
+                {% if not can_create %}
+                    <li>{{ _('You can only add existing accounts here; emails without an account are reported as errors.') }}</li>
+                {% elif organization %}
+                    <li>{{ _('New accounts join %(org)s.', org=organization.name) }}</li>
+                {% endif %}
+            </ul>
+            <input type="file" name="file" accept=".xlsx,.csv" required>
+            <button type="submit">{{ _('Preview') }}</button>
+        </form>
+
+    {% elif step == 'preview' %}
+        {{ summary_line(summary, False) }}
+        {{ rows_table(rows, False) }}
+        <form method="post" class="user-import-confirm">
+            {{ hidden_inputs() }}
+            <input type="hidden" name="step" value="confirm">
+            <input type="hidden" name="token" value="{{ token }}">
+            {% if summary.create %}
+                <label>
+                    <input type="checkbox" name="send_email" value="1">
+                    {{ _('Email the login details to each new account') }}
+                </label>
+            {% endif %}
+            <div class="user-import-buttons">
+                <a href="?{% for name, value in hidden_fields.items() %}{{ name }}={{ value|urlencode }}&{% endfor %}" class="button">{{ _('Upload another file') }}</a>
+                <button type="submit" {% if not summary.create and not summary.add %}disabled{% endif %}>{{ _('Confirm') }}</button>
+            </div>
+        </form>
+
+    {% elif step == 'result' %}
+        {{ summary_line(summary, True) }}
+        {% if credentials_url %}
+            <div class="alert alert-warning">
+                <a href="{{ credentials_url }}" class="button">{{ _('Download the new accounts (.xlsx)') }}</a>
+                {{ _('This file holds the passwords and can only be downloaded for the next hour.') }}
+            </div>
+        {% endif %}
+        {% if emailed and created %}
+            {% if failed_emails %}
+                <div class="alert alert-danger">{{ _('Could not email: %(users)s', users=failed_emails|join(', ')) }}</div>
+            {% else %}
+                <div class="alert alert-success">{{ _('The login details were emailed to the new accounts.') }}</div>
+            {% endif %}
+        {% endif %}
+        {{ rows_table(rows, True) }}
+    {% endif %}
+</div>
+
+<style>
+    .user-import .user-import-columns { width: auto; }
+    .user-import .user-import-columns th { text-align: left; font-family: monospace; padding-right: 1em; }
+    .user-import .user-import-help { margin: 0.5em 0 1em; }
+    .user-import .user-import-summary { font-weight: 600; }
+    .user-import .user-import-table td { text-align: left; vertical-align: middle; }
+    .user-import .user-import-row.error td { background: rgba(231, 76, 60, 0.08); }
+    .user-import .user-import-status { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.85em; font-weight: 600; white-space: nowrap; }
+    .user-import .user-import-status.create { background: #d4edda; color: #155724; }
+    .user-import .user-import-status.add { background: #d1ecf1; color: #0c5460; }
+    .user-import .user-import-status.skip { background: #e2e3e5; color: #383d41; }
+    .user-import .user-import-status.error { background: #f8d7da; color: #721c24; }
+    .user-import .user-import-confirm label { display: block; margin: 0.8em 0; }
+    .user-import .user-import-buttons { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .user-import .user-import-buttons button[disabled] { opacity: 0.5; cursor: not-allowed; }
+</style>

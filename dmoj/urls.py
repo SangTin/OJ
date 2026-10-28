@@ -21,6 +21,8 @@ from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
     problem_data_file, problem_init_view
 from judge.views.register import ActivationView, RegistrationView
 from judge.views.run_code import ProblemRunCodeView
+from judge.views.user_import import BulkUserImport, ContestantImport, OrganizationUserImport, \
+    UserImportDownload
 from judge.views.select2 import AssigneeSelect2View, CommentSelect2View, ContestSelect2View, \
     OrganizationProblemSelect2View, OrganizationSelect2View, \
     OrganizationUserSearchSelect2View, OrganizationUserSelect2View, ProblemSelect2View, \
@@ -213,6 +215,8 @@ urlpatterns = [
         path('find', user.user_ranking_redirect, name='user_ranking_redirect'),
         path('approval/', PendingAccountList.as_view(), name='account_approval'),
         path('approval/action', AccountApprovalAction.as_view(), name='account_approval_action'),
+        path('import/', BulkUserImport.as_view(), name='user_import'),
+        path('import/download/<str:token>', UserImportDownload.as_view(), name='user_import_download'),
     ])),
 
     path('user', user.UserAboutPage.as_view(), name='user_page'),
@@ -252,6 +256,7 @@ urlpatterns = [
     path('contests.ics', contests.ContestICal.as_view(), name='contest_ical'),
     path('contests/<int:year>/<int:month>/', contests.ContestCalendar.as_view(), name='contest_calendar'),
     path('contests/new', contests.CreateContest.as_view(), name='contest_new'),
+    path('contests/contestants/import', ContestantImport.as_view(), name='contestant_import'),
     path('contests/tag/<int:pk>', include([
         path('', contests.ContestTagDetail.as_view(), name='contest_tag'),
         path('/ajax', contests.ContestTagDetailAjax.as_view(), name='contest_tag_ajax'),
@@ -262,6 +267,7 @@ urlpatterns = [
         path('/comments', contests.ContestComments.as_view(), name='contest_comments'),
         path('/all', contests.ContestAllProblems.as_view(), name='contest_all_problems'),
         path('/edit', contests.EditContest.as_view(), name='contest_edit'),
+        path('/contestants/import', ContestantImport.as_view(), name='contest_contestant_import'),
         path('/delete', contests.ContestDelete.as_view(), name='contest_delete'),
         path('/moss', contests.ContestMossView.as_view(), name='contest_moss'),
         path('/moss/delete', contests.ContestMossDelete.as_view(), name='contest_moss_delete'),
@@ -345,6 +351,8 @@ urlpatterns = [
              paged_list_view(organization.SubmissionListOrganization, 'submission_list_organization')),
         path('/problem-create', organization.ProblemCreateOrganization.as_view(), name='problem_create_organization'),
         path('/contest-create', organization.ContestCreateOrganization.as_view(), name='contest_create_organization'),
+        path('/contestants/import', ContestantImport.as_view(), name='organization_contestant_import'),
+        path('/users/import', OrganizationUserImport.as_view(), name='organization_user_import'),
 
         path('/request', organization.RequestJoinOrganization.as_view(), name='request_organization'),
         path('/request/<int:rpk>', organization.OrganizationRequestDetail.as_view(),

@@ -560,6 +560,7 @@ class Profile(models.Model):
             ('create_mass_testcases', _('Can create unlimitted number of testcases for a problem')),
             ('ban_user', _('Ban users')),
             ('approve_user', _('Approve user accounts')),
+            ('bulk_create_users', _('Create user accounts in bulk')),
         )
         verbose_name = _('user profile')
         verbose_name_plural = _('user profiles')
