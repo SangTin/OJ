@@ -22,7 +22,7 @@ from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
 from judge.views.register import ActivationView, RegistrationView
 from judge.views.run_code import ProblemRunCodeView
 from judge.views.user_import import BulkUserImport, ContestantImport, OrganizationUserImport, \
-    UserImportDownload
+    UserImportDownload, UserImportTemplate
 from judge.views.select2 import AssigneeSelect2View, CommentSelect2View, ContestSelect2View, \
     OrganizationProblemSelect2View, OrganizationSelect2View, \
     OrganizationUserSearchSelect2View, OrganizationUserSelect2View, ProblemSelect2View, \
@@ -217,6 +217,7 @@ urlpatterns = [
         path('approval/action', AccountApprovalAction.as_view(), name='account_approval_action'),
         path('import/', BulkUserImport.as_view(), name='user_import'),
         path('import/download/<str:token>', UserImportDownload.as_view(), name='user_import_download'),
+        path('import/template.xlsx', UserImportTemplate.as_view(), name='user_import_template'),
     ])),
 
     path('user', user.UserAboutPage.as_view(), name='user_page'),

@@ -65,7 +65,12 @@
         <form method="post" enctype="multipart/form-data">
             {{ hidden_inputs() }}
             <input type="hidden" name="step" value="preview">
-            <p>{{ _('Upload an Excel (.xlsx) or CSV file. Its first row must hold the column names:') }}</p>
+            <p>
+                {{ _('Upload an Excel (.xlsx) or CSV file. Its first row must hold the column names:') }}
+                <a href="{{ url('user_import_template') }}" class="user-import-template">
+                    <i class="fa fa-download"></i> {{ _('Download the template (.xlsx)') }}
+                </a>
+            </p>
             <table class="table user-import-columns">
                 <tr><th>email</th><td>{{ _('Required. Rows without a valid email are reported as errors.') }}</td></tr>
                 <tr><th>username</th><td>{{ _('Optional. Generated from the email when empty.') }}</td></tr>
@@ -127,6 +132,7 @@
     .user-import .user-import-columns { width: auto; }
     .user-import .user-import-columns th { text-align: left; font-family: monospace; padding-right: 1em; }
     .user-import .user-import-help { margin: 0.5em 0 1em; }
+    .user-import .user-import-template { white-space: nowrap; margin-left: 0.5em; }
     .user-import .user-import-summary { font-weight: 600; }
     .user-import .user-import-table td { text-align: left; vertical-align: middle; }
     .user-import .user-import-row.error td { background: rgba(231, 76, 60, 0.08); }

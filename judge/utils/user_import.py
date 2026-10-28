@@ -238,6 +238,41 @@ def credentials_workbook(rows):
     return output.getvalue()
 
 
+def template_workbook():
+    """An empty file to fill in: the column names on the first sheet and what they mean on the second."""
+    import openpyxl
+    from openpyxl.styles import Font
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = 'users'
+    sheet.append(list(COLUMNS))
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+    for letter, width in zip('ABCD', (32, 20, 28, 16)):
+        sheet.column_dimensions[letter].width = width
+    sheet.freeze_panes = 'A2'
+
+    guide = workbook.create_sheet(_('guide')[:31])
+    guide.append([_('Column'), _('Description')])
+    for cell in guide[1]:
+        cell.font = Font(bold=True)
+    guide.append(['email', _('Required. Rows without a valid email are reported as errors.')])
+    guide.append(['username', _('Optional. Generated from the email when empty.')])
+    guide.append(['fullname', _('Optional.')])
+    guide.append(['password', _('Optional. A random password is generated when empty.')])
+    guide.append([])
+    guide.append([_('If an email already has an account, that account is used and the username, fullname and '
+                    'password in the file are ignored.')])
+    guide.append([_('Fill in the "users" sheet from its second row; only that sheet is read.')])
+    guide.column_dimensions['A'].width = 14
+    guide.column_dimensions['B'].width = 70
+
+    output = io.BytesIO()
+    workbook.save(output)
+    return output.getvalue()
+
+
 def send_credentials_emails(rows, request):
     """Email each new account its login details. Returns the usernames that could not be emailed."""
     failed = []

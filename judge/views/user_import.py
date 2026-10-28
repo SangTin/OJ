@@ -11,9 +11,10 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from judge.models import Contest, Organization
 from judge.utils.user_import import COLUMNS, ImportFileError, MAX_ROWS, STATUS_ADD, STATUS_CREATE, STATUS_ERROR, \
     STATUS_SKIP, create_accounts, load_credentials, load_rows, read_file, resolve_rows, row_summary, \
-    send_credentials_emails, store_credentials, store_rows
+    send_credentials_emails, store_credentials, store_rows, template_workbook
 
-__all__ = ['BulkUserImport', 'OrganizationUserImport', 'ContestantImport', 'UserImportDownload']
+__all__ = ['BulkUserImport', 'OrganizationUserImport', 'ContestantImport', 'UserImportDownload',
+           'UserImportTemplate']
 
 
 class BaseUserImportView(LoginRequiredMixin, View):
@@ -246,4 +247,12 @@ class UserImportDownload(LoginRequiredMixin, View):
             raise Http404()
         response = HttpResponse(data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename="accounts.xlsx"'
+        return response
+
+
+class UserImportTemplate(LoginRequiredMixin, View):
+    def get(self, request):
+        response = HttpResponse(template_workbook(),
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="users_template.xlsx"'
         return response

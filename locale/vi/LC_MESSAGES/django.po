@@ -10401,3 +10401,15 @@ msgstr "Tạo tài khoản hàng loạt"
 #, python-format
 msgid "Existing account: %s"
 msgstr "Tài khoản có sẵn: %s"
+
+msgid "guide"
+msgstr "hướng dẫn"
+
+msgid "Column"
+msgstr "Cột"
+
+msgid "Fill in the \"users\" sheet from its second row; only that sheet is read."
+msgstr "Điền vào sheet \"users\" từ dòng thứ hai; chỉ sheet này được đọc."
+
+msgid "Download the template (.xlsx)"
+msgstr "Tải file mẫu (.xlsx)"

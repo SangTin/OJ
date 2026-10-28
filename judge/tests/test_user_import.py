@@ -9,8 +9,8 @@ from django.urls import reverse
 
 from judge.models import Profile
 from judge.models.tests.util import create_contest, create_organization, create_user
-from judge.utils.user_import import ImportFileError, ImportRow, MAX_ROWS, STATUS_CREATE, create_accounts, \
-    read_file, resolve_rows, username_base
+from judge.utils.user_import import COLUMNS, ImportFileError, ImportRow, MAX_ROWS, STATUS_CREATE, \
+    create_accounts, read_file, resolve_rows, username_base
 
 
 def xlsx_file(rows, name='users.xlsx'):
@@ -51,6 +51,24 @@ class ReadFileTestCase(TestCase):
         ):
             with self.subTest(name=upload.name), self.assertRaises(ImportFileError):
                 read_file(upload)
+
+
+class TemplateTestCase(TestCase):
+    def test_template_round_trip(self):
+        self.client.force_login(create_user(username='someone'))
+        response = self.client.get(reverse('user_import_template'))
+        self.assertIn('attachment', response['Content-Disposition'])
+
+        workbook = openpyxl.load_workbook(io.BytesIO(response.content))
+        self.assertEqual(next(workbook.worksheets[0].iter_rows(values_only=True)), COLUMNS)
+        self.assertEqual(len(workbook.worksheets), 2)
+
+        # Filled in, the template reads back; the guide sheet is ignored.
+        workbook.worksheets[0].append(['a@example.com', None, 'A', None])
+        output = io.BytesIO()
+        workbook.save(output)
+        rows = read_file(SimpleUploadedFile('filled.xlsx', output.getvalue()))
+        self.assertEqual([(r.email, r.fullname) for r in rows], [('a@example.com', 'A')])
 
 
 class ResolveRowsTestCase(TestCase):
@@ -136,6 +154,7 @@ class BulkUserImportTestCase(ImportViewTestMixin, TestCase):
     def test_preview_confirm_download_and_email(self):
         self.client.force_login(self.importer)
         url = reverse('user_import')
+        self.assertContains(self.client.get(url), reverse('user_import_template'))
         preview = self.upload(url, csv_file('email,fullname\nnew@example.com,New\nold@example.com,Old\n,x\n'))
         self.assertEqual(self.statuses(preview), {'new@example.com': 'create', 'old@example.com': 'skip', '': 'error'})
         self.assertFalse(User.objects.filter(email='new@example.com').exists())
