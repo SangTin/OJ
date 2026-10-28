@@ -662,3 +662,24 @@ nav {
         }
     }
 }
+// Count badge on navigation items (e.g. pending accounts), see judge/utils/navigation.py
+.nav-badge {
+    display: inline-block;
+    min-width: 18px;
+    margin-left: 4px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: none;
+}
+
+// Keep a label and its badge on one line in the dropdowns; the menu widens instead.
+#nav-list li ul li a {
+    white-space: nowrap;
+}

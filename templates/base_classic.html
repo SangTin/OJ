@@ -244,11 +244,12 @@
                 <li class="home-nav-element"><a href="{{ url('home') }}">{% include "site-logo-fragment.html" %}</a></li>
                 <li class="home-nav-element"><span class="nav-divider"></span></li>
                 <li class="home-menu-item"><a href="{{ url('home') }}" class="nav-home">{{ _('Home') }}</a></li>
-                {% for node in mptt_tree(nav_bar) recursive %}
+                {% for node in nav_tree(nav_bar, request.user) recursive %}
                     <li>
                         <a href="{{ node.path }}" class="nav-{{ node.key }}{% if node.key in nav_tab %} active{% endif %}">
                             {{ _(node.label) }}
-                            {% if not node.is_leaf_node() %}
+                            {% if node.badge %}<span class="nav-badge">{{ node.badge }}</span>{% endif %}
+                            {% if node.get_children() %}
                                 <div class="nav-expand">&gt;</div>
                             {% endif %}
                         </a>
@@ -349,7 +350,8 @@
                                 <li><a href="{{ url('admin:index') }}">{{ _('Admin') }}</a></li>
                             {% endif %}
                             {% if perms.judge.approve_user %}
-                                <li><a href="{{ url('account_approval') }}">{{ _('Pending accounts') }}</a></li>
+                                {% set pending_count = pending_account_count() %}
+                                <li><a href="{{ url('account_approval') }}">{{ _('Pending accounts') }}{% if pending_count %} <span class="nav-badge">{{ pending_count }}</span>{% endif %}</a></li>
                             {% endif %}
                             <li><a href="{{ url('user_edit_profile') }}">{{ _('Edit profile') }}</a></li>
                             {% if request.user.is_impersonate %}
