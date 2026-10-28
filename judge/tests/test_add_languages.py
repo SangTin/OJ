@@ -29,6 +29,12 @@ class AddLanguagesCommandTestCase(TestCase):
         self.assertTrue(Language.objects.filter(key='RUST').exists())
         self.assertNotIn('GO', self.output_only.allowed_languages.values_list('key', flat=True))
 
+    def test_adds_vnoj_judge_languages(self):
+        self.run_command('CPPTHEMIS', 'PASTHEMIS', 'CPP23')
+        self.assertEqual(Language.objects.get(key='CPPTHEMIS').common_name, 'C++')
+        self.assertEqual(Language.objects.get(key='PASTHEMIS').extension, 'pas')
+        self.assertIn('normal', Language.objects.get(key='CPP23').problem_set.values_list('code', flat=True))
+
     def test_existing_languages_are_untouched(self):
         Language.objects.filter(key='PY3').update(name='Custom Python')
         output = self.run_command('PY3')

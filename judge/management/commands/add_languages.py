@@ -6,7 +6,9 @@ from django.db import transaction
 
 from judge.models import Language
 
-FIXTURE = os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures', 'language_all.json')
+FIXTURE_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures')
+# DMOJ's standard languages, plus the executors only VNOJ's judge-server has (C23, CPPTHEMIS, ...).
+FIXTURES = ('language_all.json', 'language_vnoj.json')
 
 
 class Command(BaseCommand):
@@ -22,9 +24,11 @@ class Command(BaseCommand):
         parser.add_argument('--dry-run', action='store_true', help='only show what would be done')
 
     def handle(self, *args, **options):
-        with open(FIXTURE) as f:
-            available = {item['fields']['key']: item['fields'] for item in json.load(f)
-                         if item['model'] == 'judge.language'}
+        available = {}
+        for fixture in FIXTURES:
+            with open(os.path.join(FIXTURE_DIR, fixture)) as f:
+                available.update((item['fields']['key'], item['fields']) for item in json.load(f)
+                                 if item['model'] == 'judge.language')
         existing = set(Language.objects.values_list('key', flat=True))
         addable = sorted(set(available) - existing)
 
