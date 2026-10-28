@@ -10166,3 +10166,13 @@ msgstr "Thao tác này không còn khả dụng."
 msgid "%d account was rejected and locked."
 msgid_plural "%d accounts were rejected and locked."
 msgstr[0] "Đã từ chối và khoá %d tài khoản."
+
+msgid "required permission"
+msgstr "quyền yêu cầu"
+
+msgid ""
+"Only show this item to users with this permission, e.g. judge.approve_user. "
+"Leave empty to show it to everyone."
+msgstr ""
+"Chỉ hiện mục này cho người dùng có quyền này, ví dụ judge.approve_user. Để "
+"trống để hiện cho mọi người."

@@ -49,9 +49,15 @@ class NavigationBar(MPTTModel):
     regex = models.TextField(verbose_name=_('highlight regex'), validators=[validate_regex])
     parent = TreeForeignKey('self', verbose_name=_('parent item'), null=True, blank=True,
                             related_name='children', on_delete=models.CASCADE)
+    permission = models.CharField(max_length=100, blank=True, verbose_name=_('required permission'),
+                                  help_text=_('Only show this item to users with this permission, '
+                                              'e.g. judge.approve_user. Leave empty to show it to everyone.'))
 
     def __str__(self):
         return self.label
+
+    def is_visible_to(self, user):
+        return not self.permission or user.has_perm(self.permission)
 
     @property
     def pattern(self, cache={}):

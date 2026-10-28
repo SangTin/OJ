@@ -8,7 +8,7 @@ from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from reversion.admin import VersionAdmin
 
 from judge.models import Profile, WebAuthnCredential
-from judge.utils.account_approval import approve_profile, finish_approval
+from judge.utils.account_approval import approve_profile, finish_approval, invalidate_pending_account_count
 from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminAceWidget, AdminMartorWidget, AdminSelect2MultipleWidget, AdminSelect2Widget
 
@@ -182,6 +182,8 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         if change and 'is_approved' in form.changed_data and obj.is_approved:
             if not finish_approval(obj, request):
                 self.warn_unemailed(request, [obj.username])
+        elif form.changed_data and {'is_approved', 'ban_reason'} & set(form.changed_data):
+            invalidate_pending_account_count()
 
 
 class UserAdmin(OldUserAdmin):

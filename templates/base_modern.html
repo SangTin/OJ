@@ -333,11 +333,12 @@
             <ul id="nav-list">
                 {% if request.organization is not defined %}
                 <li class="home-menu-item"><a href="{{ url('home') }}" class="nav-home">{{ _('Home') }}</a></li>
-                {% for node in mptt_tree(nav_bar) recursive %}
+                {% for node in nav_tree(nav_bar, request.user) recursive %}
                 <li>
                     <a href="{{ node.path }}" class="nav-{{ node.key }}{% if node.key in nav_tab %} active{% endif %}">
                         {{ _(node.label)|lower|capitalize }}
-                        {% if not node.is_leaf_node() %}
+                        {% if node.badge %}<span class="nav-badge">{{ node.badge }}</span>{% endif %}
+                        {% if node.get_children() %}
                         <i class="fa fa-angle-down nav-expand"></i>
                         {% endif %}
                     </a>
@@ -445,7 +446,8 @@
                                         }}</a></li>
                                 {% endif %}
                                 {% if perms.judge.approve_user %}
-                                <li><a href="{{ url('account_approval') }}"><i class="fa fa-user-plus"></i> {{ _('Pending accounts') }}</a></li>
+                                {% set pending_count = pending_account_count() %}
+                                <li><a href="{{ url('account_approval') }}"><i class="fa fa-user-plus"></i> {{ _('Pending accounts') }}{% if pending_count %} <span class="nav-badge">{{ pending_count }}</span>{% endif %}</a></li>
                                 {% endif %}
                                 <li><a href="{{ url('user_edit_profile') }}"><i class="fa fa-edit"></i> {{ _('Edit
                                         profile')

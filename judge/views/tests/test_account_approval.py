@@ -5,10 +5,11 @@ from django.urls import reverse
 from django.utils import timezone
 
 from judge.forms import CustomAuthenticationForm
-from judge.models import MiscConfig, Notification, Profile
+from judge.models import MiscConfig, NavigationBar, Notification, Profile
 from judge.models.tests.util import create_user
 from judge.utils.account_approval import APPROVAL_CONFIG_KEY, approval_required, hold_for_approval, \
-    notify_account_approvers
+    invalidate_pending_account_count, notify_account_approvers, pending_account_count
+from judge.utils.navigation import nav_tree
 
 
 def create_user_with_password(username, password='correct-horse', approved=True, **kwargs):
@@ -313,3 +314,44 @@ class RejectAllTestCase(TestCase):
             self.assertTrue(Profile.objects.get(user=user).is_banned)
         self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(list(self.client.get(reverse('account_approval')).context['profiles']), [])
+
+
+class PendingAccountNavigationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        users = NavigationBar.objects.create(key='user', label='Users', path='/users/', regex=r'^/user', order=1)
+        NavigationBar.objects.create(key='approval', label='Pending accounts', path='/users/approval/',
+                                     regex=r'^/users/approval/', order=1, parent=users,
+                                     permission='judge.approve_user')
+        cls.approver = create_user(username='approver', user_permissions=('approve_user',))
+        cls.regular = create_user(username='regular')
+        create_user_with_password('pending', approved=False)
+        create_user_with_password('pending_other', approved=False)
+
+    def setUp(self):
+        invalidate_pending_account_count()
+
+    def tree(self, user):
+        return {node.key: (node.badge, [child.key for child in node.get_children()])
+                for node in nav_tree(NavigationBar.objects.all(), user)}
+
+    def test_item_and_badge_only_for_approvers(self):
+        self.assertEqual(self.tree(self.approver), {'user': (2, ['approval'])})
+        self.assertEqual(self.tree(self.regular), {'user': (0, [])})
+
+        self.client.force_login(self.approver)
+        response = self.client.get(reverse('problem_list'))
+        self.assertContains(response, 'href="/users/approval/" class="nav-approval')
+        self.assertContains(response, '<span class="nav-badge">2</span>')
+
+        self.client.force_login(self.regular)
+        response = self.client.get(reverse('problem_list'))
+        self.assertNotContains(response, 'nav-approval')
+        self.assertNotContains(response, 'nav-badge')
+
+    def test_count_follows_approvals(self):
+        self.assertEqual(pending_account_count(), 2)
+        self.client.force_login(self.approver)
+        self.client.post(reverse('account_approval_action'), {'action': 'approve_all'})
+        self.assertEqual(pending_account_count(), 0)
+        self.assertEqual(self.tree(self.approver), {'user': (0, ['approval'])})

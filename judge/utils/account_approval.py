@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import translation
@@ -9,6 +10,7 @@ from django.utils.translation import gettext as _
 from judge.models import MiscConfig, Profile, make_notification
 from judge.notification_actions import NotificationAction, NotificationActionError, NotificationActionHandler, \
     register, resolve_notifications
+from judge.utils.navigation import register_nav_badge
 
 logger = logging.getLogger('judge.account_approval')
 
@@ -18,6 +20,22 @@ APPROVAL_CONFIG_KEY = 'require_account_approval'
 
 def approval_required():
     return MiscConfig.objects.filter(key=APPROVAL_CONFIG_KEY, value='1').exists()
+
+
+PENDING_COUNT_CACHE_KEY = 'pending_account_count'
+
+
+def pending_account_count():
+    count = cache.get(PENDING_COUNT_CACHE_KEY)
+    if count is None:
+        count = pending_profiles().count()
+        # Cleared whenever an account is held, approved or rejected; the timeout covers other edits (e.g. unbanning).
+        cache.set(PENDING_COUNT_CACHE_KEY, count, 300)
+    return count
+
+
+def invalidate_pending_account_count():
+    cache.delete(PENDING_COUNT_CACHE_KEY)
 
 
 def account_approvers():
@@ -39,6 +57,7 @@ def hold_for_approval(profile):
 
 
 def notify_account_approvers(profile):
+    invalidate_pending_account_count()
     # Notifications are stored as text, so write the title in the site language rather than the registrant's.
     with translation.override(settings.LANGUAGE_CODE):
         title = _('New account awaiting approval: %s') % profile.user.username
@@ -93,6 +112,7 @@ def pending_profiles():
 
 def finish_approval(profile, request):
     """Run after a profile got approved anywhere. Returns whether the user could be emailed."""
+    invalidate_pending_account_count()
     resolve_notifications(AccountApprovalNotification.kind, profile=profile.id)
     logger.info('%s approved account %s', request.user.username, profile.user.username)
     return send_approval_email(profile, request)
@@ -106,6 +126,7 @@ def approve_profile(profile, request):
 def reject_profile(profile, request):
     # Lock the account instead of deleting it, so nothing it may own is lost; an admin can unban it later.
     profile.ban_user(_('Registration was not approved.'))
+    invalidate_pending_account_count()
     send_rejection_email(profile.user)
     resolve_notifications(AccountApprovalNotification.kind, profile=profile.id)
     logger.info('%s rejected and locked account %s', request.user.username, profile.user.username)
@@ -140,3 +161,7 @@ class AccountApprovalNotification(NotificationActionHandler):
             return _('Account %s was approved.') % profile.user.username
         reject_profile(profile, request)
         return _('Account %s was rejected and locked.') % profile.user.username
+
+
+# Badge on the "Pending accounts" navigation item (and on its parent, the Users tab).
+register_nav_badge('approval', pending_account_count)
