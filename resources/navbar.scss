@@ -415,6 +415,65 @@ nav {
     }
 }
 
+// Notification bell & panel (modern look for upstream's notification system)
+#user-links #notification-nav {
+    .notification-bell {
+        position: relative;
+    }
+
+    .notification-badge {
+        top: -2px;
+        right: -2px;
+    }
+
+    // Hidden until notification.js adds `.open` to the parent li (shown by notification.scss).
+    .notification-panel {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: auto;
+        width: 340px;
+        list-style: none;
+        margin-top: 12px !important;
+        padding: 6px 0;
+        background: var(--dropdown-bg);
+        border: 1px solid var(--dropdown-border);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        z-index: 600;
+
+        .notification-panel-header {
+            border-bottom-color: var(--dropdown-border);
+
+            .notification-panel-title {
+                color: var(--text-main);
+            }
+        }
+
+        .notification-panel-footer {
+            border-top-color: var(--dropdown-border);
+        }
+
+        a {
+            color: var(--text-main);
+        }
+
+        .notification-items .notification-item {
+            border-bottom-color: var(--dropdown-border);
+
+            .notification-item-body {
+                color: var(--text-muted);
+            }
+        }
+
+        .notification-mark-all,
+        .notification-panel-footer a {
+            color: var(--accent-color);
+        }
+    }
+}
+
 // Theme Toggle Button
 .theme-toggle-btn {
     cursor: pointer;

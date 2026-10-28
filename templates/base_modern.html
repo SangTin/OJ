@@ -17,28 +17,29 @@
     {% endif %}
     <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1">
     <!-- Favicons-->
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
-    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="/android-chrome-192x192.png" sizes="192x192">
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="57x57" href="{{ static('icons/apple-touch-icon-57x57.png') }}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{{ static('icons/apple-touch-icon-60x60.png') }}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{{ static('icons/apple-touch-icon-72x72.png') }}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ static('icons/apple-touch-icon-76x76.png') }}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{{ static('icons/apple-touch-icon-114x114.png') }}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ static('icons/apple-touch-icon-120x120.png') }}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ static('icons/apple-touch-icon-144x144.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ static('icons/apple-touch-icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ static('icons/apple-touch-icon-180x180.png') }}">
+    <link rel="icon" type="image/png" href="{{ static('icons/favicon-32x32.png') }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ static('icons/android-chrome-192x192.png') }}" sizes="192x192">
+    <link rel="icon" type="image/png" href="{{ static('icons/favicon-96x96.png') }}" sizes="96x96">
+    <link rel="icon" type="image/png" href="{{ static('icons/favicon-16x16.png') }}" sizes="16x16">
     <meta name="msapplication-TileColor" content="#231F20">
-    <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+    <meta name="msapplication-TileImage" content="{{ static('icons/mstile-144x144.png') }}">
     {# Chrome 39 for Android colour #}
     <meta name="theme-color" content="#231F20">
     {% if og_image %}
     <meta property="og:image" content="{{ request.build_absolute_uri(og_image) }}">
     {% else %}
-    <meta property="og:image" content="{{ request.build_absolute_uri("/logo.png") }}">
+    {% with logo_url=misc_config.site_logo|default(static('icons/og_logo.png'), true) %}
+    <meta property="og:image" content="{{ logo_url }}">
+    {% endwith %}
     {% endif %}
     {% block og_title %}{% endblock %}
     <meta property="og:site_name" content="{{ SITE_LONG_NAME }}">
@@ -52,9 +53,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {# Each theme stylesheet is compressed on its own and gets its id back, so toggleTheme() can switch them without a reload. #}
+    {% set light_style_link %}{% compress css %}
+    <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}" {% if SITE_THEME_NAME == 'dark' %} media="none" {% endif %}>
+    {% endcompress %}{% endset %}
+    {% set dark_style_link %}{% compress css %}
+    <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" {% if SITE_THEME_NAME == 'light' %} media="none" {% elif SITE_THEME_NAME == 'auto' %} media="(prefers-color-scheme: dark)" {% endif %}>
+    {% endcompress %}{% endset %}
+    {{ light_style_link|replace('<link '|safe, '<link id="light-style" '|safe, 1) }}
+    {{ dark_style_link|replace('<link '|safe, '<link id="dark-style" '|safe, 1) }}
     {% compress css %}
-    <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}" id="light-style" {% if SITE_THEME_NAME == 'dark' %} media="none" {% endif %}>
-    <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" id="dark-style" {% if SITE_THEME_NAME == 'light' %} media="none" {% elif SITE_THEME_NAME == 'auto' %} media="(prefers-color-scheme: dark)" {% endif %}>
     {% if INLINE_FONTAWESOME %}
     <link rel="stylesheet" href="{{ static('libs/fontawesome/font-awesome.css') }}">{% endif %}
     {#
@@ -95,7 +103,7 @@
             }
 
             // Persist to cookie (for both guests and logged-in users) - 1 year duration
-            document.cookie = `vnoj_site_theme=${newTheme}; Max-Age=${365 * 24 * 60 * 60}; path=/; SameSite=Lax`;
+            document.cookie = `{{ SITE_THEME_COOKIE_NAME }}=${newTheme}; Max-Age=${365 * 24 * 60 * 60}; path=/; SameSite=Lax`;
 
             // Persist to profile if logged in
             if (window.user && window.user.id) {
@@ -167,6 +175,22 @@
     </script>
     {% endcompress %}
     {% block js_media %}{% endblock %}
+    {% if request.user.is_authenticated %}
+    <script>
+        window.notificationConfig = {
+            channel: 'notification_{{ NOTIFICATION_SECRET }}',
+            cacheKey: 'notif_cache_notification_{{ NOTIFICATION_SECRET }}',
+            clearCache: function () { try { localStorage.removeItem(this.cacheKey); } catch (e) {} },
+            ajaxUrl: '{{ url("notification_ajax") }}',
+            markReadUrl: '{{ url("notification_mark_read") }}',
+            actionUrl: '{{ url("notification_action") }}',
+            access: '{{ _("View") }}',
+            close: '{{ _("Close") }}',
+            empty: '{{ _("No notifications.") }}',
+        };
+    </script>
+    <script src="{{ static('notification.js') }}"></script>
+    {% endif %}
     {% if EVENT_LAST_MSG %}
     <script>
         window.event_dispatcher = new WSEventDispatcher(
@@ -175,6 +199,9 @@
             {{ EVENT_LAST_MSG }}
         );
     </script>
+    {% if request.user.is_authenticated %}
+    <script src="{{ static('notification-realtime.js') }}"></script>
+    {% endif %}
     {% endif %}
     {% if request.in_contest %}
     <script>$(function () {
@@ -229,9 +256,9 @@
             $(function () {
                 event_dispatcher.auto_reconnect = true;
                 event_dispatcher.on('contest_{{ request.participation.contest.id_secret }}', function (data) {
-                    alert(data.title + '\n\n' + data.message);
+                    if (window.handleNotificationEvent) window.handleNotificationEvent(data);
                 });
-            })
+            });
             {% endif %}
         });
     </script>
@@ -341,15 +368,17 @@
                     </span>
                 </a>
                 {% endif %}
+                {% if request.user.is_authenticated %}
                 {% if request.resolver_match.view_name == "problem_detail" and problem %}
                 <a href="{{ url('new_problem_ticket', problem.code) }}" class="nav-tool-btn">
                     {% else %}
-                    <a href="/tickets/new?issue_url={{ request.build_absolute_uri()|urlencode }}" class="nav-tool-btn">
+                    <a href="/tickets/new?issue_url={{ request.get_full_path()|urlencode }}" class="nav-tool-btn">
                         {% endif %}
-                        <span title="{{ _('Report issue') }}">
+                        <span title="{{ _('Report an issue') }}">
                             <i class="fa fa-exclamation-triangle"></i>
                         </span>
                     </a>
+                {% endif %}
 
                     <a href="javascript:void(0)" class="theme-toggle-btn nav-tool-btn" onclick="toggleTheme()" title="{{ _('Toggle theme') }}">
                         <i data-lucide="moon" class="theme-icon-moon" fill="currentColor"></i>
@@ -373,6 +402,27 @@
                         </ul>
                     </div>
                     {% if request.user.is_authenticated %}
+                    <ul id="notification-nav">
+                        <li>
+                            <a href="{{ url('notification_list') }}" class="notification-bell nav-tool-btn" title="{{ _('Notifications') }}">
+                                <i class="fa fa-bell"></i>
+                                <span class="notification-badge{% if not UNREAD_NOTIFICATION_COUNT %} hidden{% endif %}">{{ UNREAD_NOTIFICATION_COUNT }}</span>
+                            </a>
+                            <ul class="notification-panel">
+                                <li class="notification-panel-header">
+                                    <span class="notification-panel-title">{{ _('Unread') }}</span>
+                                    <a href="#" class="notification-mark-all">{{ _('Mark all read') }}</a>
+                                </li>
+                                <li class="notification-list-container">
+                                    <div class="notification-items"></div>
+                                    <div class="notification-empty hidden">{{ _('No notifications.') }}</div>
+                                </li>
+                                <li class="notification-panel-footer">
+                                    <a href="{{ url('notification_list') }}">{{ _('See all notifications') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                     <ul>
                         <li>
                             <a href="{{ url('user_page') }}" class="user-avatar-btn">
@@ -393,6 +443,9 @@
                                 {% if request.user.is_staff or request.user.is_superuser %}
                                 <li><a href="{{ url('admin:index') }}"><i class="fa fa-shield"></i> {{ _('Admin')
                                         }}</a></li>
+                                {% endif %}
+                                {% if perms.judge.approve_user %}
+                                <li><a href="{{ url('account_approval') }}"><i class="fa fa-user-plus"></i> {{ _('Pending accounts') }}</a></li>
                                 {% endif %}
                                 <li><a href="{{ url('user_edit_profile') }}"><i class="fa fa-edit"></i> {{ _('Edit
                                         profile')
@@ -460,6 +513,13 @@
         <main id="content">
             {% if misc_config.top_notification %}
             {{ render_django(misc_config.top_notification) }}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+            <div class="alert alert-warning unread-notification-banner{% if not UNREAD_NOTIFICATION_COUNT %} hidden{% endif %}">
+                <i class="fa fa-bell" style="color:#e6a817;"></i>
+                <span>{{ _('You have unread notifications.') }}</span>
+                <a href="#" class="banner-open-notifications">{{ _('View') }}</a>
+            </div>
             {% endif %}
             {% block title_row %}
             <h2 style="display:inline">

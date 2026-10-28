@@ -1,12 +1,14 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import F, Q
-from django.http import Http404, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils.cache import patch_cache_control
 from django.utils.encoding import smart_str
 from django.views.generic.list import BaseListView
 
 from judge.jinja2.gravatar import gravatar
 from judge.models import Comment, Contest, Organization, Problem, Profile, Tag, TagGroup
+from judge.utils.infinite_paginator import InfinitePaginationMixin
 
 
 def _get_user_queryset(term):
@@ -24,8 +26,18 @@ def _get_organization_user_queryset(org_pk, term):
     return qs
 
 
-class Select2View(BaseListView):
+class Select2CacheControlMixin:
+    cache_timeout = 300  # Cache timeout (in seconds) for select2 ajax responses
+
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        patch_cache_control(response, private=True, max_age=self.cache_timeout)
+        return response
+
+
+class Select2View(Select2CacheControlMixin, InfinitePaginationMixin, BaseListView):
     paginate_by = 20
+    pad_pages = 0
 
     def get(self, request, *args, **kwargs):
         self.request = request
@@ -125,6 +137,32 @@ class ProblemSelect2View(Select2View):
         return Problem.get_visible_problems(self.request.user) \
                       .filter(Q(code__icontains=self.term) | Q(name__icontains=self.term))
 
+    def get_name(self, obj):
+        return f'[{obj.code}] {obj.name}'
+
+
+class PublicProblemSelect2View(Select2View):
+    def get_queryset(self):
+        return Problem.get_public_problems() \
+                      .filter(Q(code__icontains=self.term) | Q(name__icontains=self.term))
+
+    def get_name(self, obj):
+        return f'[{obj.code}] {obj.name}'
+
+
+class OrganizationProblemSelect2View(Select2View):
+    def dispatch(self, request, *args, **kwargs):
+        self.org_pk = kwargs['org_pk']
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Problem.get_visible_problems(self.request.user) \
+                      .filter(organization_id=self.org_pk, is_organization_private=True) \
+                      .filter(Q(code__icontains=self.term) | Q(name__icontains=self.term))
+
+    def get_name(self, obj):
+        return f'[{obj.code}] {obj.name}'
+
 
 class ContestSelect2View(Select2View):
     def get_queryset(self):
@@ -137,8 +175,9 @@ class CommentSelect2View(Select2View):
         return Comment.objects.filter(page__icontains=self.term)
 
 
-class UserSearchSelect2View(BaseListView):
+class UserSearchSelect2View(Select2CacheControlMixin, InfinitePaginationMixin, BaseListView):
     paginate_by = 20
+    pad_pages = 0
 
     def get_queryset(self):
         return _get_user_queryset(self.term).filter(is_unlisted=False)
@@ -168,16 +207,6 @@ class UserSearchSelect2View(BaseListView):
 
     def get_name(self, obj):
         return str(obj)
-
-
-class ContestUserSearchSelect2View(UserSearchSelect2View):
-    def get_queryset(self):
-        contest = get_object_or_404(Contest, key=self.kwargs['contest'])
-        if not contest.is_accessible_by(self.request.user) or not contest.can_see_full_scoreboard(self.request.user):
-            raise Http404()
-
-        return Profile.objects.filter(contest_history__contest=contest,
-                                      user__username__icontains=self.term).distinct()
 
 
 class OrganizationUserSearchSelect2View(UserSearchSelect2View):

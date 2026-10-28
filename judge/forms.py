@@ -17,12 +17,15 @@ from django.forms import BooleanField, CharField, ChoiceField, DateInput, Form, 
 from django.forms.widgets import DateTimeInput
 from django.template.defaultfilters import filesizeformat
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _, ngettext_lazy
 
 from django_ace.widgets import DivTextarea
-from judge.models import BlogPost, Contest, ContestAnnouncement, ContestProblem, Language, LanguageLimit, \
-    Organization, Problem, Profile, Solution, Submission, Tag, WebAuthnCredential
+from judge.contest_format import formats as contest_formats
+from judge.models import BlogPost, Contest, ContestAnnouncement, ContestParticipation, ContestProblem, Language, \
+    LanguageLimit, Organization, OrganizationProblemTag, Problem, Profile, Solution, Submission, Tag, \
+    WebAuthnCredential
 from judge.models.runtime import Judge0Language
 from judge.utils.subscription import newsletter_id
 from judge.widgets import AceWidget, HeavySelect2MultipleWidget, HeavySelect2Widget, MartorWidget, \
@@ -66,10 +69,13 @@ class ProfileForm(ModelForm):
             'site_theme': Select2Widget(attrs={'style': 'width:200px'}),
         }
 
-        # Make sure that users cannot change their `about` in contest mode
-        # because the user can put the solution in that profile
         if settings.VNOJ_OFFICIAL_CONTEST_MODE:
+            # Make sure that users cannot change their `about` in contest mode
+            # because the user can put the solution in that profile
             fields.remove('about')
+            # Organizations and badges are managed by admins in contest mode
+            fields.remove('display_badge')
+            fields.remove('organizations')
 
         has_math_config = bool(settings.MATHOID_URL)
         if has_math_config:
@@ -99,17 +105,19 @@ class ProfileForm(ModelForm):
         user = kwargs.pop('user', None)
         super(ProfileForm, self).__init__(*args, **kwargs)
 
-        self.fields['display_badge'].required = False
-        self.fields['display_badge'].queryset = self.instance.badges.all()
-        if not self.fields['display_badge'].queryset:
-            self.fields.pop('display_badge')
+        if 'display_badge' in self.fields:
+            self.fields['display_badge'].required = False
+            self.fields['display_badge'].queryset = self.instance.badges.all()
+            if not self.fields['display_badge'].queryset:
+                self.fields.pop('display_badge')
 
-        if not user.has_perm('judge.edit_all_organization'):
-            self.fields['organizations'].queryset = Organization.objects.filter(
-                Q(is_open=True, is_unlisted=False) | Q(id__in=user.profile.organizations.all()),
-            )
-        if not self.fields['organizations'].queryset:
-            self.fields.pop('organizations')
+        if 'organizations' in self.fields:
+            if not user.has_perm('judge.edit_all_organization'):
+                self.fields['organizations'].queryset = Organization.objects.filter(
+                    Q(is_open=True, is_unlisted=False) | Q(id__in=user.profile.organizations.all()),
+                )
+            if not self.fields['organizations'].queryset:
+                self.fields.pop('organizations')
 
 
 class UserForm(ModelForm):
@@ -179,7 +187,11 @@ class ProblemEditForm(ModelForm):
         # Only allow to public/private problem in organization
         if org_pk is None:
             self.fields.pop('is_public')
+            self.fields.pop('tags')
         else:
+            self.fields['tags'].queryset = OrganizationProblemTag.objects.filter(organization_id=org_pk)
+            self.fields.pop('types')
+            self.fields['group'].widget = forms.HiddenInput()
             self.fields['testers'].label = _('Private users')
             self.fields['testers'].help_text = _('If private, only these users may see the problem.')
             self.fields['testers'].widget.data_view = None
@@ -226,10 +238,11 @@ class ProblemEditForm(ModelForm):
     class Meta:
         model = Problem
         fields = ['is_public', 'code', 'name', 'time_limit', 'memory_limit', 'points', 'partial',
-                  'statement_file', 'source', 'types', 'group', 'submission_source_visibility_mode',
+                  'statement_file', 'source', 'types', 'group', 'tags', 'submission_source_visibility_mode',
                   'testcase_visibility_mode', 'description', 'testers']
         widgets = {
             'types': Select2MultipleWidget,
+            'tags': Select2MultipleWidget(),
             'group': Select2Widget,
             'submission_source_visibility_mode': Select2Widget,
             'testcase_visibility_mode': Select2Widget,
@@ -531,6 +544,41 @@ class OrganizationForm(ModelForm):
             self.fields.pop('monthly_free_credit_limit')
 
 
+class OrganizationProblemTagForm(ModelForm):
+    class Meta:
+        model = OrganizationProblemTag
+        fields = ['name']
+
+
+class QuotaGrantForm(Form):
+    start_date = forms.DateField(
+        widget=DateInput(attrs={'type': 'date'}),
+        label=_('Start date'),
+        initial=lambda: timezone.now().date(),
+    )
+    packages = forms.IntegerField(
+        min_value=1,
+        initial=1,
+        label=_('Number of packages'),
+        help_text=_('Each package adds %(storage)s and %(problems)d problems.') % {
+            'storage': filesizeformat(settings.VNOJ_QUOTA_PACKAGE_STORAGE),
+            'problems': settings.VNOJ_QUOTA_PACKAGE_PROBLEMS,
+        },
+    )
+    end_date = forms.DateField(
+        widget=DateInput(attrs={'type': 'date'}),
+        label=_('End date'),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_date')
+        end = cleaned_data.get('end_date')
+        if start and end and end <= start:
+            raise ValidationError(_('End date must be after start date.'))
+        return cleaned_data
+
+
 class SocialAuthMixin:
     def _has_social_auth(self, key):
         return (getattr(settings, 'SOCIAL_AUTH_%s_KEY' % key, None) and
@@ -563,10 +611,24 @@ class CustomAuthenticationForm(AuthenticationForm, SocialAuthMixin):
             user = None
         if user is not None:
             self.confirm_login_allowed(user)
-        return super(CustomAuthenticationForm, self).clean()
+        cleaned_data = super(CustomAuthenticationForm, self).clean()
+        # Checked only once the password is verified, so it doesn't reveal which accounts are pending.
+        if self.user_cache is not None and not self.user_cache.is_superuser and \
+                Profile.objects.filter(user=self.user_cache, is_approved=False).exists():
+            raise forms.ValidationError(
+                _('Your account is waiting for an administrator to approve it.'),
+                code='pending_approval',
+            )
+        return cleaned_data
 
     def confirm_login_allowed(self, user):
         if user.profile.is_banned:
+            if user.profile.ban_reason == settings.VNOJ_CONTEST_CHEATING_BAN_MESSAGE:
+                self.cheating_contests = ContestParticipation.objects.filter(
+                    user=user.profile,
+                    contest__is_organization_private=False,
+                    is_disqualified=True,
+                ).select_related('contest').order_by('contest__end_time')
             raise forms.ValidationError(
                 _('This account has been banned. Reason: %s') % user.profile.ban_reason,
                 code='banned',
@@ -697,6 +759,7 @@ class ContestAnnouncementForm(forms.ModelForm):
 
 class ContestCloneForm(Form):
     key = CharField(max_length=32, validators=[RegexValidator('^[a-z0-9_]+$', _('Contest id must be ^[a-z0-9_]+$'))])
+    copy_problems = BooleanField(label=_('Copy problems'), initial=True, required=False)
 
     def clean_key(self):
         key = self.cleaned_data['key']
@@ -735,7 +798,19 @@ class ProposeContestProblemFormSet(
             ContestProblem,
             form=ProposeContestProblemForm,
             can_delete=True,
+            max_num=settings.MAX_CONTEST_PROBLEMS_COUNT,
+            validate_max=True,
         )):
+
+    def full_clean(self):
+        # Django < 5.0 doesn't support override the too_many_forms message in the constructor.
+        # So we have to do it ourselves
+        super().full_clean()
+
+        for error in self._non_form_errors.as_data():
+            if error.code == 'too_many_forms':
+                error.message = _('Contest cannot have more than %(limit)d problems.') % \
+                    {'limit': self.max_num}
 
     def clean(self) -> None:
         """Checks that no Contest problems have the same order."""
@@ -796,6 +871,7 @@ class ContestForm(ModelForm):
         self.org_pk = org_pk = kwargs.pop('org_pk', None)
         self.user = kwargs.pop('user', None)
         super(ContestForm, self).__init__(*args, **kwargs)
+        self.frozen_supported_formats = [key for key, fmt in contest_formats.items() if fmt.supports_frozen]
 
         # cannot use fields[].widget = ...
         # because it will remove the old values
@@ -809,8 +885,20 @@ class ContestForm(ModelForm):
             str(self.fields['private_contestants'].help_text) + ' ' + \
             str(_('You can paste a list of usernames into this box.'))
 
+        if not (self.user and self.user.is_superuser):
+            del self.fields['push_announcements']
+            del self.fields['disallow_virtual']
+
+        if org_pk:
+            del self.fields['tags']
+
     def clean(self):
         cleaned_data = super().clean()
+        frozen = cleaned_data.get('frozen_last_minutes')
+        if frozen and frozen < 0:
+            self.add_error('frozen_last_minutes', _('Frozen time cannot be negative.'))
+        elif frozen and cleaned_data.get('format_name') not in self.frozen_supported_formats:
+            cleaned_data['frozen_last_minutes'] = 0
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
 
@@ -844,7 +932,11 @@ class ContestForm(ModelForm):
             'show_short_display',
             'scoreboard_visibility',
             'format_name',
+            'frozen_last_minutes',
+            'push_announcements',
+            'disallow_virtual',
             'description',
+            'tags',
             'access_code',
             'is_private',
             'private_contestants',
@@ -856,6 +948,7 @@ class ContestForm(ModelForm):
             'description': MartorWidget(attrs={'data-markdownfy-url': reverse_lazy('contest_preview')}),
             'scoreboard_visibility': Select2Widget(),
             'format_name': Select2Widget(),
+            'tags': Select2MultipleWidget(attrs={'style': 'width: 100%'}),
             'private_contestants': HeavySelect2MultipleWidget(
                 data_view='profile_select2',
                 attrs={'style': 'width: 100%'},
@@ -864,6 +957,8 @@ class ContestForm(ModelForm):
         help_texts = {
             'end_time': _('Users are able to pratice contest problems even if the contest has ended, '
                           "so don't set the contest time too high if you don't really need it."),
+            'frozen_last_minutes': _('If set, the scoreboard will be frozen for the last X minutes. '
+                                     'Set it to 0 to unfreeze and reveal the actual ranking.'),
         }
         error_messages = {
             'key': {

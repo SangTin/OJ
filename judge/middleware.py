@@ -9,7 +9,7 @@ from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import Resolver404, resolve, reverse
 from django.utils.encoding import force_bytes
@@ -48,6 +48,13 @@ class DMOJLoginMiddleware(object):
         request.official_contest_mode = settings.VNOJ_OFFICIAL_CONTEST_MODE
         if request.user.is_authenticated:
             profile = request.profile = request.user.profile
+            if not profile.is_approved and not request.user.is_superuser:
+                # Also catches OAuth logins and sessions of accounts that were unapproved later on.
+                auth.logout(request)
+                request.profile = None
+                if 'authorization' in request.headers:
+                    return HttpResponseForbidden('Account pending approval')
+                return HttpResponseRedirect(reverse('account_pending_approval'))
             if uwsgi:
                 uwsgi.set_logvar('username', request.user.username)
                 uwsgi.set_logvar('language', request.LANGUAGE_CODE)
@@ -153,7 +160,7 @@ class APIMiddleware(object):
 
     def __call__(self, request):
         full_token = request.headers.get('authorization', '')
-        if not full_token:
+        if not full_token or request.path.startswith('/o/'):
             return self.get_response(request)
 
         token = self.header_pattern.match(full_token)

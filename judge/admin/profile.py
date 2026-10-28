@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as OldUserAdmin
+from django.contrib.auth.models import Permission
 from django.forms import ModelForm
 from django.urls import reverse_lazy
 from django.utils.html import format_html
@@ -7,6 +8,7 @@ from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from reversion.admin import VersionAdmin
 
 from judge.models import Profile, WebAuthnCredential
+from judge.utils.account_approval import approve_profile, finish_approval
 from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminAceWidget, AdminMartorWidget, AdminSelect2MultipleWidget, AdminSelect2Widget
 
@@ -60,15 +62,15 @@ class WebAuthnInline(admin.TabularInline):
 class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     fields = ('user', 'display_rank', 'badges', 'display_badge', 'about', 'organizations', 'vnoj_points', 'timezone',
               'language', 'ace_theme', 'math_engine', 'last_access', 'ip', 'mute', 'is_unlisted', 'allow_tagging',
-              'notes', 'username_display_override', 'ban_reason', 'is_totp_enabled', 'ip_auth', 'user_script',
-              'current_contest')
+              'notes', 'username_display_override', 'ban_reason', 'is_approved', 'is_totp_enabled', 'ip_auth',
+              'user_script', 'current_contest')
     readonly_fields = ('user',)
-    list_display = ('admin_user_admin', 'email', 'is_totp_enabled', 'timezone_full',
+    list_display = ('admin_user_admin', 'email', 'is_approved', 'is_totp_enabled', 'timezone_full',
                     'date_joined', 'last_access', 'ip', 'show_public')
     ordering = ('user__username',)
     search_fields = ('user__username', 'ip', 'user__email')
-    list_filter = ('language', TimezoneFilter)
-    actions = ('recalculate_points', 'recalulate_contribution_points')
+    list_filter = ('is_approved', 'language', TimezoneFilter)
+    actions = ('approve_users', 'recalculate_points', 'recalulate_contribution_points')
     actions_on_top = True
     actions_on_bottom = True
     form = ProfileForm
@@ -101,7 +103,12 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         fields = self.readonly_fields
         if not request.user.has_perm('judge.totp'):
             fields += ('is_totp_enabled',)
+        if not self.has_approve_permission(request):
+            fields += ('is_approved',)
         return fields
+
+    def has_approve_permission(self, request):
+        return request.user.has_perm('judge.approve_user')
 
     @admin.display(description='')
     def show_public(self, obj):
@@ -123,6 +130,20 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     @admin.display(description=_('date joined'), ordering='user__date_joined')
     def date_joined(self, obj):
         return obj.user.date_joined
+
+    def warn_unemailed(self, request, usernames):
+        if usernames:
+            self.message_user(request, gettext('Could not email approval to: %s') % ', '.join(usernames),
+                              level=messages.WARNING)
+
+    @admin.action(description=_('Approve selected accounts'), permissions=['approve'])
+    def approve_users(self, request, queryset):
+        profiles = list(queryset.filter(is_approved=False).select_related('user'))
+        self.warn_unemailed(request, [profile.username for profile in profiles
+                                      if not approve_profile(profile, request)])
+        self.message_user(request, ngettext('%d account was approved.',
+                                            '%d accounts were approved.',
+                                            len(profiles)) % len(profiles))
 
     @admin.display(description=_('Recalculate scores'))
     def recalculate_points(self, request, queryset):
@@ -158,9 +179,27 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         if form.changed_data and 'ban_reason' in form.changed_data and form.cleaned_data['ban_reason'] == '':
             obj.ban_reason = None
             obj.save()
+        if change and 'is_approved' in form.changed_data and obj.is_approved:
+            if not finish_approval(obj, request):
+                self.warn_unemailed(request, [obj.username])
 
 
 class UserAdmin(OldUserAdmin):
+    def view_on_site(self, obj):
+        return obj.profile.get_absolute_url()
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'user_permissions':
+            kwargs['queryset'] = Permission.objects.select_related('content_type').order_by(
+                'content_type__app_label', 'codename',
+            )
+            field = super().formfield_for_manytomany(db_field, request, **kwargs)
+            field.label_from_instance = lambda obj: (
+                f'{obj.content_type.app_label}.{obj.codename} | {_(obj.name)}'
+            )
+            return field
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if not change:

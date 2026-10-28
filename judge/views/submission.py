@@ -462,9 +462,17 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         context['show_problem'] = self.show_problem
 
         profile = self.request.profile
+
+        def page_problem_ids():
+            return {sub.problem_id for sub in context['submissions']}
+
         context['completed_problem_ids'] = memo_lazy(lambda: user_completed_ids(profile), set) if authenticated else []
-        context['editable_problem_ids'] = memo_lazy(lambda: user_editable_ids(profile), set) if authenticated else []
-        context['tester_problem_ids'] = memo_lazy(lambda: user_tester_ids(profile), set) if authenticated else []
+        context['editable_problem_ids'] = memo_lazy(
+            lambda: user_editable_ids(profile, page_problem_ids()), set,
+        ) if authenticated else []
+        context['tester_problem_ids'] = memo_lazy(
+            lambda: user_tester_ids(profile, page_problem_ids()), set,
+        ) if authenticated else []
 
         context['all_languages'] = Language.objects.all().values_list('key', 'name')
         context['selected_languages'] = self.selected_languages
@@ -643,16 +651,18 @@ class ProblemSubmissionsBase(SubmissionsListBase):
         if self.dynamic_update:
             context['dynamic_update'] = context['page_obj'].number == 1
             context['dynamic_problem_id'] = self.problem.id
-        if hasattr(self, 'contest'):
-            context['best_submissions_link'] = reverse('contest_ranked_submissions',
-                                                       kwargs={'problem': self.problem.code,
-                                                               'contest': self.contest.key})
-        else:
-            context['best_submissions_link'] = reverse('ranked_submissions', kwargs={'problem': self.problem.code})
+        if self.problem.is_public:
+            if hasattr(self, 'contest'):
+                context['best_submissions_link'] = reverse('contest_ranked_submissions',
+                                                           kwargs={'problem': self.problem.code,
+                                                                   'contest': self.contest.key})
+            else:
+                context['best_submissions_link'] = reverse('ranked_submissions',
+                                                           kwargs={'problem': self.problem.code})
         return context
 
 
-class ProblemSubmissions(ProblemSubmissionsBase):
+class ProblemSubmissions(InfinitePaginationMixin, ProblemSubmissionsBase):
     def get_my_submissions_page(self):
         if self.request.user.is_authenticated:
             if hasattr(self, 'contest'):
@@ -718,11 +728,24 @@ def single_submission(request):
     if not submission.problem.is_accessible_by(request.user):
         raise Http404()
 
+    if authenticated:
+        problem_id = submission.problem_id
+        profile = request.profile
+        completed_problem_ids = [problem_id] if Submission.objects.filter(
+            user=profile, problem_id=problem_id, result='AC',
+        ).exists() else []
+        editable_problem_ids = [problem_id] if submission.problem.is_editable_by(request.user) else []
+        tester_problem_ids = [problem_id] if Problem.testers.through.objects.filter(
+            profile=profile, problem_id=problem_id,
+        ).exists() else []
+    else:
+        completed_problem_ids = editable_problem_ids = tester_problem_ids = []
+
     return render(request, 'submission/row.html', {
         'submission': submission,
-        'completed_problem_ids': user_completed_ids(request.profile) if authenticated else [],
-        'editable_problem_ids': user_editable_ids(request.profile) if authenticated else [],
-        'tester_problem_ids': user_tester_ids(request.profile) if authenticated else [],
+        'completed_problem_ids': completed_problem_ids,
+        'editable_problem_ids': editable_problem_ids,
+        'tester_problem_ids': tester_problem_ids,
         'show_problem': show_problem,
         'problem_name': show_problem and submission.problem.translated_name(request.LANGUAGE_CODE),
         'profile_id': request.profile.id if authenticated else 0,

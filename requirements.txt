@@ -44,3 +44,8 @@ django-admin-sortable2
 icalendar
 # This is a celery dependency whose latest major version is breaking everything.
 importlib-metadata<5
+django-storages[s3]
+django-oauth-toolkit
+# Newer cryptography (pulled in by django-storages/django-oauth-toolkit) breaks the site; jwcrypto>=1.6.1 needs it.
+cryptography==45.0.5
+jwcrypto<1.6.1

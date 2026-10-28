@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block media %}
+    <style>
+        .account-approval-actions form {
+            display: inline;
+        }
+
+        .account-approval-actions button {
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        .account-approval-actions button.reject-button {
+            background: #c9302c;
+            border-color: #ac2925;
+        }
+
+        .account-approval-actions button.reject-button:hover {
+            background: #ac2925;
+        }
+
+        .account-approval-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1em;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include "messages.html" %}
+    {% if profiles %}
+        <div class="account-approval-toolbar">
+            <span>{{ ngettext('%(num)d account is waiting for approval.', '%(num)d accounts are waiting for approval.', profiles|length) }}</span>
+            <span class="account-approval-actions">
+                <form action="{{ url('account_approval_action') }}" method="post"
+                      onsubmit='return confirm({{ _("Approve all pending accounts?")|tojson }})'>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve_all">
+                    <button type="submit">{{ _('Approve all') }}</button>
+                </form>
+                <form action="{{ url('account_approval_action') }}" method="post"
+                      onsubmit='return confirm({{ _("Reject and lock all pending accounts?")|tojson }})'>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject_all">
+                    <button type="submit" class="reject-button">{{ _('Reject all') }}</button>
+                </form>
+            </span>
+        </div>
+        <div class="h-scrollable-table table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>{{ _('Username') }}</th>
+                    <th>{{ _('Full name') }}</th>
+                    <th>{{ _('Email') }}</th>
+                    <th>{{ _('Email verified') }}</th>
+                    <th>{{ _('Organizations') }}</th>
+                    <th>{{ _('Registered') }}</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for profile in profiles %}
+                    <tr>
+                        <td>{{ profile.user.username }}</td>
+                        <td>{{ profile.user.first_name }}</td>
+                        <td>{{ profile.user.email }}</td>
+                        <td>{% if profile.user.is_active %}<i class="fa fa-check" style="color: green"></i>{% else %}<i class="fa fa-times" style="color: gray" title="{{ _('The user has not clicked the activation link yet.') }}"></i>{% endif %}</td>
+                        <td>{% for org in profile.organizations.all() %}{{ org.name }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+                        <td>{{ profile.user.date_joined|date(_("N j, Y, H:i")) }}</td>
+                        <td class="account-approval-actions" style="white-space: nowrap">
+                            <form action="{{ url('account_approval_action') }}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="id" value="{{ profile.id }}">
+                                <button type="submit">{{ _('Approve') }}</button>
+                            </form>
+                            <form action="{{ url('account_approval_action') }}" method="post"
+                                  onsubmit='return confirm({{ _("Reject and lock account %(username)s?", username=profile.user.username)|tojson }})'>
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="id" value="{{ profile.id }}">
+                                <button type="submit" class="reject-button">{{ _('Reject') }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>{{ _('There are no accounts waiting for approval.') }}</p>
+    {% endif %}
+{% endblock %}
