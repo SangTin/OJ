@@ -60,10 +60,15 @@ class BaseUserImportView(LoginRequiredMixin, View):
                 self.mark_existing(row)
             elif can_create:
                 row.status = STATUS_CREATE
-                row.note = _('New account: %s') % row.username
+                if row.renamed_from:
+                    row.note = _('New account: %(new)s (%(old)s is already taken)') % {
+                        'new': row.username, 'old': row.renamed_from}
+                else:
+                    row.note = _('New account: %s') % row.username
             else:
                 row.status = STATUS_ERROR
-                row.error = _('No account uses this email.')
+                row.error = _('No account uses this email.') if row.email \
+                    else _('Without an email, no existing account can be found.')
         return rows
 
     def apply(self, rows):

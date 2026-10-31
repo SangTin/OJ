@@ -72,12 +72,13 @@
                 </a>
             </p>
             <table class="table user-import-columns">
-                <tr><th>email</th><td>{{ _('Required. Rows without a valid email are reported as errors.') }}</td></tr>
-                <tr><th>username</th><td>{{ _('Optional. Generated from the email when empty.') }}</td></tr>
+                <tr><th>email</th><td>{{ _('Optional. Used to find an existing account and to send the login details.') }}</td></tr>
+                <tr><th>username</th><td>{{ _('Optional. Generated from the email or the full name when empty; a number is added when it is already taken.') }}</td></tr>
                 <tr><th>fullname</th><td>{{ _('Optional.') }}</td></tr>
                 <tr><th>password</th><td>{{ _('Optional. A random password is generated when empty.') }}</td></tr>
             </table>
             <ul class="user-import-help">
+                <li>{{ _('Each row needs at least an email, a username or a full name.') }}</li>
                 <li>{{ _('If an email already has an account, that account is used and the username, fullname and password in the file are ignored.') }}</li>
                 <li>{{ _('At most %(max)d rows per file. Nothing is saved until you confirm the preview.', max=max_rows) }}</li>
                 {% if not can_create %}
