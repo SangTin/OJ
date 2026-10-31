@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from judge.models import Profile
 from judge.models.tests.util import create_contest, create_organization, create_user
-from judge.utils.user_import import COLUMNS, ImportFileError, ImportRow, MAX_ROWS, STATUS_CREATE, \
+from judge.utils.user_import import COLUMNS, ImportFileError, ImportRow, MAX_ROWS, STATUS_CREATE, STATUS_ERROR, \
     create_accounts, read_file, resolve_rows, username_base
 
 
@@ -41,9 +41,13 @@ class ReadFileTestCase(TestCase):
         rows = read_file(csv_file('email,username\na@example.com,alice\n'))
         self.assertEqual((rows[0].email, rows[0].username), ('a@example.com', 'alice'))
 
+    def test_reads_without_email(self):
+        rows = read_file(csv_file('fullname,password\nNguyễn Văn An,\n'))
+        self.assertEqual((rows[0].email, rows[0].fullname), ('', 'Nguyễn Văn An'))
+
     def test_rejects_bad_files(self):
         for upload in (
-            csv_file('username,fullname\nalice,Alice\n'),  # no email column
+            csv_file('password\nx\n'),  # no email, username or fullname column
             csv_file('email\n'),  # no rows
             SimpleUploadedFile('users.txt', b'email\na@example.com'),
             SimpleUploadedFile('users.xlsx', b'not a zip file'),
@@ -76,6 +80,7 @@ class ResolveRowsTestCase(TestCase):
     def setUpTestData(cls):
         cls.existing = create_user(username='existing', email='Existing@Example.com')
         create_user(username='nguyenvana')
+        create_user(username='a' * 30)
 
     def resolve(self, *rows):
         return resolve_rows([ImportRow(line=i + 2, **row) for i, row in enumerate(rows)])
@@ -83,6 +88,7 @@ class ResolveRowsTestCase(TestCase):
     def test_username_base(self):
         self.assertEqual(username_base('Nguyễn.Văn-Đức@example.com'), 'nguyenvanduc')
         self.assertEqual(username_base('...@example.com'), 'user')
+        self.assertEqual(username_base('Nguyễn Văn An'), 'nguyenvanan')
 
     def test_rows(self):
         rows = self.resolve(
@@ -100,9 +106,24 @@ class ResolveRowsTestCase(TestCase):
         self.assertEqual(rows[2].profile.user, self.existing)
         self.assertEqual((rows[3].username, rows[4].username), ('nguyenvana2', 'nguyenvana3'))
         self.assertIn('line 5', rows[5].error)
-        self.assertIn('already taken', rows[6].error)
+        self.assertEqual((rows[6].username, rows[6].renamed_from, rows[6].error), ('existing2', 'existing', ''))
         self.assertTrue(rows[7].error)
         self.assertEqual((rows[8].username, rows[8].error), ('chosen', ''))
+
+    def test_taken_usernames_get_a_number(self):
+        rows = self.resolve(
+            {'username': 'Existing'},
+            {'username': 'existing'},
+            {'fullname': 'Nguyễn Văn A'},
+            {'fullname': 'Nguyễn Văn A'},
+            {'username': 'a' * 30},
+            {'password': 'x'},
+        )
+        self.assertEqual([(r.username, r.renamed_from) for r in rows[:5]],
+                         [('Existing2', 'Existing'), ('existing3', 'existing'), ('nguyenvana2', ''),
+                          ('nguyenvana3', ''), ('a' * 29 + '2', 'a' * 30)])
+        self.assertTrue(rows[5].error)
+        self.assertTrue(all(row.profile is None for row in rows))
 
     def test_create_accounts(self):
         org = create_organization(name='school')
@@ -147,6 +168,7 @@ class BulkUserImportTestCase(ImportViewTestMixin, TestCase):
         cls.importer = create_user(username='importer', user_permissions=('bulk_create_users',))
         cls.regular = create_user(username='regular')
         create_user(username='old', email='old@example.com')
+        create_user(username='existing_name')
 
     def test_needs_permission(self):
         self.client.force_login(self.regular)
@@ -156,8 +178,9 @@ class BulkUserImportTestCase(ImportViewTestMixin, TestCase):
         self.client.force_login(self.importer)
         url = reverse('user_import')
         self.assertContains(self.client.get(url), reverse('user_import_template'))
-        preview = self.upload(url, csv_file('email,fullname\nnew@example.com,New\nold@example.com,Old\n,x\n'))
-        self.assertEqual(self.statuses(preview), {'new@example.com': 'create', 'old@example.com': 'skip', '': 'error'})
+        preview = self.upload(url, csv_file('email,fullname\nnew@example.com,New\nold@example.com,Old\nbad-email,x\n'))
+        self.assertEqual(self.statuses(preview),
+                         {'new@example.com': 'create', 'old@example.com': 'skip', 'bad-email': 'error'})
         self.assertFalse(User.objects.filter(email='new@example.com').exists())
 
         result = self.confirm(url, preview, send_email=True)
@@ -173,6 +196,21 @@ class BulkUserImportTestCase(ImportViewTestMixin, TestCase):
 
         # The preview token is single-use.
         self.assertEqual(self.confirm(url, preview).context['step'], 'upload')
+
+    def test_import_without_email(self):
+        self.client.force_login(self.importer)
+        url = reverse('user_import')
+        preview = self.upload(url, csv_file('username,fullname\nexisting_name,Cô A\n,Thầy Bình\n'))
+        rows = preview.context['rows']
+        self.assertEqual([(row.status, row.username) for row in rows],
+                         [(STATUS_CREATE, 'existing_name2'), (STATUS_CREATE, 'thaybinh')])
+        self.assertIn('existing_name', rows[0].note)
+
+        result = self.confirm(url, preview, send_email=True)
+        self.assertTrue(User.objects.filter(username='existing_name2', email='').exists())
+        self.assertTrue(User.objects.filter(username='thaybinh', email='').exists())
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(result.context['failed_emails'], ['existing_name2', 'thaybinh'])
 
 
 class OrganizationUserImportTestCase(ImportViewTestMixin, TestCase):
@@ -236,6 +274,11 @@ class ContestantImportTestCase(ImportViewTestMixin, TestCase):
         self.assertFalse(User.objects.filter(email='new@example.com').exists())
         # The contest itself is only saved by the contest form.
         self.assertFalse(self.contest.private_contestants.exists())
+
+    def test_row_without_email_needs_create_permission(self):
+        self.client.force_login(self.author)
+        preview = self.upload(self.url, csv_file('username\nnobody\n'))
+        self.assertEqual([row.status for row in preview.context['rows']], [STATUS_ERROR])
 
     def test_creator_creates_accounts(self):
         self.client.force_login(self.creator)

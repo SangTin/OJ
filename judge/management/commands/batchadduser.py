@@ -9,8 +9,9 @@ from judge.utils.user_import import ImportFileError, STATUS_CREATE, STATUS_ERROR
 
 
 class Command(BaseCommand):
-    help = ('batch create users from an .xlsx or .csv file with the columns email (required), username, fullname '
-            'and password; emails that already have an account are skipped')
+    help = ('batch create users from an .xlsx or .csv file with the columns email, username, fullname and password '
+            '(each row needs at least one of the first three); emails that already have an account are skipped; '
+            'taken usernames get a number added')
 
     def add_arguments(self, parser):
         parser.add_argument('input', help='.xlsx or .csv file to read')

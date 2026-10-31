@@ -51,10 +51,12 @@ class ImportFileError(Exception):
 @dataclass
 class ImportRow:
     line: int
-    email: str
+    email: str = ''
     username: str = ''
     fullname: str = ''
     password: str = ''
+    # The username asked for in the file when a number had to be added to it.
+    renamed_from: str = ''
     error: str = ''
     status: str = ''
     note: str = ''
@@ -112,9 +114,9 @@ def read_file(uploaded_file):
     if not table:
         raise ImportFileError(_('The file is empty.'))
     header = [cell.lower() for cell in table[0]]
-    if 'email' not in header:
-        raise ImportFileError(_('The file has no "email" column. The first row must contain the column names: %s.')
-                              % ', '.join(COLUMNS))
+    if not any(column in header for column in COLUMNS[:3]):
+        raise ImportFileError(_('The file needs an email, username or fullname column. The first row must contain '
+                                'the column names: %s.') % ', '.join(COLUMNS))
     index = {column: header.index(column) for column in COLUMNS if column in header}
 
     rows = []
@@ -141,15 +143,16 @@ def username_base(email):
     return (re.sub(r'[^a-z0-9_]', '', local) or 'user')[:USERNAME_MAX_LENGTH - 4]
 
 
-def _generate_username(email, reserved):
-    base = username_base(email)
-    taken = set(User.objects.annotate(name=Lower('username')).filter(name__startswith=base)
+def _unique_username(base, reserved):
+    taken = set(User.objects.annotate(name=Lower('username'))
+                .filter(name__startswith=base.lower()[:USERNAME_MAX_LENGTH - 4])
                 .values_list('name', flat=True)) | reserved
-    username, suffix = base, 1
-    while username in taken:
-        suffix += 1
-        username = '%s%d' % (base, suffix)
-    return username
+    candidate, n = base, 1
+    while candidate.lower() in taken:
+        n += 1
+        tail = str(n)
+        candidate = base[:USERNAME_MAX_LENGTH - len(tail)] + tail
+    return candidate
 
 
 def resolve_rows(rows):
@@ -160,46 +163,46 @@ def resolve_rows(rows):
             .filter(email_lower__in=emails):
         accounts.setdefault(profile.email_lower, []).append(profile)
 
-    wanted = {row.username.lower() for row in rows if row.username}
-    taken = set(User.objects.annotate(name=Lower('username')).filter(name__in=wanted)
-                .values_list('name', flat=True))
-
     seen, reserved = {}, set()
     for row in rows:
-        row.error, row.profile = '', None
-        if not row.email:
-            row.error = _('Missing email.')
+        row.error, row.profile, row.renamed_from = '', None, ''
+        if not (row.email or row.username or row.fullname):
+            row.error = _('The row needs an email, a username or a full name.')
             continue
-        try:
-            validate_email(row.email)
-        except ValidationError:
-            row.error = _('Invalid email address.')
-            continue
-        key = row.email.lower()
-        if key in seen:
-            row.error = _('Duplicate of the email on line %d.') % seen[key]
-            continue
-        seen[key] = row.line
+        if row.email:
+            try:
+                validate_email(row.email)
+            except ValidationError:
+                row.error = _('Invalid email address.')
+                continue
+            key = row.email.lower()
+            if key in seen:
+                row.error = _('Duplicate of the email on line %d.') % seen[key]
+                continue
+            seen[key] = row.line
 
-        matches = accounts.get(key, [])
-        if len(matches) > 1:
-            row.error = _('Several accounts use this email.')
-        elif matches:
-            row.profile = matches[0]
-        elif len(row.fullname) > FULLNAME_MAX_LENGTH:
+            matches = accounts.get(key, [])
+            if len(matches) > 1:
+                row.error = _('Several accounts use this email.')
+                continue
+            if matches:
+                row.profile = matches[0]
+                continue
+        if len(row.fullname) > FULLNAME_MAX_LENGTH:
             row.error = _('Full name is longer than %d characters.') % FULLNAME_MAX_LENGTH
         elif row.username:
-            name = row.username.lower()
             if not USERNAME_RE.match(row.username) or len(row.username) > USERNAME_MAX_LENGTH:
                 row.error = _('A username may only contain letters, numbers and underscores (at most %d).') \
                     % USERNAME_MAX_LENGTH
-            elif name in taken or name in reserved:
-                row.error = _('Username %s is already taken.') % row.username
             else:
-                reserved.add(name)
+                wanted = row.username
+                row.username = _unique_username(wanted, reserved)
+                if row.username != wanted:
+                    row.renamed_from = wanted
         else:
-            row.username = _generate_username(row.email, reserved)
-            reserved.add(row.username)
+            row.username = _unique_username(username_base(row.email or row.fullname), reserved)
+        if not row.error:
+            reserved.add(row.username.lower())
     return rows
 
 
@@ -258,13 +261,15 @@ def template_workbook():
     guide.append([_('Column'), _('Description')])
     for cell in guide[1]:
         cell.font = Font(bold=True)
-    guide.append(['email', _('Required. Rows without a valid email are reported as errors.')])
-    guide.append(['username', _('Optional. Generated from the email when empty.')])
+    guide.append(['email', _('Optional. Used to find an existing account and to send the login details.')])
+    guide.append(['username', _('Optional. Generated from the email or the full name when empty; a number is added '
+                                'when it is already taken.')])
     guide.append(['fullname', _('Optional.')])
     guide.append(['password', _('Optional. A random password is generated when empty.')])
     guide.append([])
     guide.append([_('If an email already has an account, that account is used and the username, fullname and '
                     'password in the file are ignored.')])
+    guide.append([_('Each row needs at least an email, a username or a full name.')])
     guide.append([_('Fill in the "users" sheet from its second row; only that sheet is read.')])
     guide.column_dimensions['A'].width = 14
     guide.column_dimensions['B'].width = 70
@@ -279,6 +284,9 @@ def send_credentials_emails(rows, request):
     failed = []
     login_url = request.build_absolute_uri(reverse('auth_login'))
     for row in rows:
+        if not row.email:
+            failed.append(row.username)
+            continue
         subject = _('Your account on %s') % settings.SITE_NAME
         message = _('Hello %(name)s,\n\n'
                     'An account has been created for you on %(site)s.\n\n'
