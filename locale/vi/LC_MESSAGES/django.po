@@ -9726,10 +9726,8 @@ msgid "In the meantime, try resubmitting in a few seconds."
 msgstr "Bạn có thể thử nộp lại bài trong vài giây nữa"
 
 #: judge/forms.py:382
-#, fuzzy
-#| msgid "Source code/file is missing or redundant. Please try again"
 msgid "Source code is missing or redundant. Please try again"
-msgstr "Code/file code đang thiếu hoặc bị thừa. Xin hãy thử lại"
+msgstr "Code đang thiếu hoặc bị thừa. Xin hãy thử lại"
 
 #: judge/models/contest.py:154
 msgid "If private, only these organizations may see the contest"
@@ -9835,7 +9833,7 @@ msgstr "Vui lòng đợi"
 
 #: templates/problem/data.html
 msgid "Sample?"
-msgstr ""
+msgstr "Mẫu?"
 
 #: templates/problem/data.html
 msgid "Run Code"
@@ -9852,46 +9850,34 @@ msgstr ""
 "chạy code với test mẫu trước khi nộp. Tối đa %(max)s test mẫu."
 
 #: judge/models/runtime.py:56 judge/models/runtime.py:138
-#, fuzzy
-#| msgid "language"
 msgid "Judge0 language"
-msgstr "ngôn ngữ"
+msgstr "ngôn ngữ Judge0"
 
 #: judge/models/runtime.py:57
-#, fuzzy
-#| msgid "If this language is submitted using file or not"
 msgid ""
 "If this language is supported by Judge0, it will be used for running custom "
 "tests."
-msgstr "Ngôn ngữ chỉ có thể nộp bằng file"
+msgstr "Nếu Judge0 hỗ trợ ngôn ngữ này thì sẽ dùng nó để chạy thử."
 
 #: judge/models/runtime.py:127
-#, fuzzy
-#| msgid "language"
 msgid "language name"
-msgstr "ngôn ngữ"
+msgstr "tên ngôn ngữ"
 
 #: judge/models/runtime.py:128
-#, fuzzy
-#| msgid "submission language"
 msgid "monaco language ID"
-msgstr "ngôn ngữ lập trình"
+msgstr "ID ngôn ngữ Monaco"
 
 #: judge/models/runtime.py:139
-#, fuzzy
-#| msgid "languages"
 msgid "Judge0 languages"
-msgstr "ngôn ngữ"
+msgstr "ngôn ngữ Judge0"
 
 #: judge/models/runtime.py:230
-#, fuzzy
-#| msgid "Custom Test"
 msgid "custom test history"
-msgstr "Chạy thử"
+msgstr "lịch sử chạy thử"
 
 #: judge/models/runtime.py:231
 msgid "custom test histories"
-msgstr ""
+msgstr "lịch sử chạy thử"
 
 #: judge/views/customtest.py:30 judge/views/customtest.py:37
 #: judge/views/customtest.py:40
@@ -10436,3 +10422,21 @@ msgid ""
 "password."
 msgstr ""
 "Người dùng sẽ bị chuyển tới trang đổi mật khẩu cho đến khi đổi mật khẩu."
+
+msgid "Expected sample output. Shown to users alongside their output."
+msgstr "Output mẫu mong đợi. Hiển thị cho người dùng cạnh output của họ."
+
+msgid "Page not found. You have been returned to the current page."
+msgstr "Không tìm thấy trang. Bạn đã được đưa về trang hiện tại."
+
+msgid "Toggle theme"
+msgstr "Đổi giao diện sáng/tối"
+
+msgid "Profile"
+msgstr "Hồ sơ"
+
+#, python-format
+msgid ""
+"Your default language, %(language)s, is unavailable and has been deselected."
+msgstr ""
+"Ngôn ngữ mặc định của bạn, %(language)s, không dùng được và đã bị bỏ chọn."
