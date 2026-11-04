@@ -258,6 +258,7 @@ class OrganizationSubdomainMiddleware(object):
             response.context_data['logo_override_image'] = request.organization.logo_override_image
         return response
 
+
 class VNOJUISwitchMiddleware(object):
     def __init__(self, get_response):
         self.get_response = get_response
@@ -273,7 +274,7 @@ class VNOJUISwitchMiddleware(object):
             query.pop('switch_ui')
             if query:
                 path += '?' + query.urlencode()
-            
+
             response = HttpResponseRedirect(path)
             # Set cookie for 1 year
             response.set_cookie('vnoj_ui_version', switch_ui, max_age=31536000, path='/')

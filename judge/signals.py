@@ -3,11 +3,11 @@ import os
 from typing import Optional
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.flatpages.models import FlatPage
 from django.core.cache import cache
 from django.core.cache.utils import make_template_fragment_key
 from django.db import transaction
-from django.contrib.auth.models import User
 from django.db.models.signals import m2m_changed, post_delete, post_save, pre_save
 from django.dispatch import receiver
 from registration.models import RegistrationProfile
@@ -228,3 +228,9 @@ def clear_must_change_password(sender, instance, update_fields=None, **kwargs):
     old_password = User.objects.filter(pk=instance.pk).values_list('password', flat=True).first()
     if old_password is not None and old_password != instance.password:
         Profile.objects.filter(user_id=instance.pk, must_change_password=True).update(must_change_password=False)
+        # A password reset/change invalidates MCP grants, including refresh
+        # tokens and authorization codes that have not yet been exchanged.
+        from oauth2_provider.models import get_access_token_model, get_grant_model, get_refresh_token_model
+
+        from judge.mcp_auth import revoke_user_mcp_tokens
+        revoke_user_mcp_tokens(instance.pk, get_access_token_model(), get_refresh_token_model(), get_grant_model())
