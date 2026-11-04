@@ -896,17 +896,29 @@ OAUTH_ONLY = False
 
 # https://django-oauth-toolkit.readthedocs.io/en/latest/settings.html#settings
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'judge.oauth_validator.VNOIOAuthValidator',
+    'OAUTH2_VALIDATOR_CLASS': 'judge.mcp_auth.MCPOAuthValidator',
     'PKCE_REQUIRED': False,
     # only required if using OpenID Connect
     # 'OIDC_ENABLED': True,
     # 'OIDC_RSA_PRIVATE_KEY': '',
+    'DEFAULT_SCOPES': ['openid', 'profile', 'email'],
     'SCOPES': {
+        'mcp': 'Manage problems and contests through MCP',
         'openid': 'OpenID Connect',
         'profile': 'Your profile',
         'email': 'Your email address',
     },
 }
+
+# MCP is opt-in and uses a distinct OAuth scope and resource audience.
+MCP_ENABLED = False
+MCP_ACCESS_TOKEN_EXPIRE_SECONDS = 3600
+MCP_REFRESH_TOKEN_EXPIRE_SECONDS = 7 * 24 * 60 * 60
+MCP_RESOURCE_URL = ''
+MCP_ALLOWED_REDIRECT_URIS = ('https://claude.ai/api/mcp/auth_callback',)
+MCP_ALLOW_LOOPBACK_REDIRECTS = False
+MCP_REGISTRATION_LIMIT = 10
+MCP_ALLOWED_ORIGINS = ()
 
 try:
     with open(os.path.join(os.path.dirname(__file__), 'local_settings.py')) as f:

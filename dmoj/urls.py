@@ -9,6 +9,7 @@ from django.urls import include, path, re_path, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from judge import mcp, mcp_auth
 from judge.feed import AtomBlogFeed, AtomCommentFeed, AtomProblemFeed, BlogFeed, CommentFeed, ProblemFeed
 from judge.sitemap import sitemaps
 from judge.views import TitledTemplateView, api, blog, comment, contests, customtest, language, license, mailgun, \
@@ -21,13 +22,13 @@ from judge.views.problem_data import ProblemDataView, ProblemSubmissionDiff, \
     problem_data_file, problem_init_view
 from judge.views.register import ActivationView, RegistrationView
 from judge.views.run_code import ProblemRunCodeView
-from judge.views.user_import import BulkUserImport, ContestantImport, OrganizationUserImport, \
-    UserImportDownload, UserImportTemplate
 from judge.views.select2 import AssigneeSelect2View, CommentSelect2View, ContestSelect2View, \
     OrganizationProblemSelect2View, OrganizationSelect2View, \
     OrganizationUserSearchSelect2View, OrganizationUserSelect2View, ProblemSelect2View, \
     PublicProblemSelect2View, TagGroupSelect2View, TagSelect2View, TicketUserSelect2View, \
     UserSearchSelect2View, UserSelect2View
+from judge.views.user_import import BulkUserImport, ContestantImport, OrganizationUserImport, \
+    UserImportDownload, UserImportTemplate
 from judge.views.widgets import martor_image_uploader
 from martor.views import markdown_search_user
 
@@ -107,6 +108,12 @@ def paged_list_view(view, name):
 
 
 urlpatterns = [
+    path('mcp', mcp.endpoint, name='mcp'),
+    path('mcp/register', mcp_auth.register, name='mcp_register'),
+    path('.well-known/oauth-protected-resource/mcp', mcp_auth.protected_resource_metadata,
+         name='mcp_resource_metadata'),
+    path('.well-known/oauth-authorization-server', mcp_auth.authorization_server_metadata,
+         name='mcp_authorization_metadata'),
     path('', blog.PostList.as_view(template_name='home.html', title=_('Home')), kwargs={'page': 1}, name='home'),
     path('500/', exception),
     path('admin/', admin.site.urls),

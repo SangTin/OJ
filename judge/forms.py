@@ -26,7 +26,7 @@ from judge.contest_format import formats as contest_formats
 from judge.models import BlogPost, Contest, ContestAnnouncement, ContestParticipation, ContestProblem, Language, \
     LanguageLimit, Organization, OrganizationProblemTag, Problem, Profile, Solution, Submission, Tag, \
     WebAuthnCredential
-from judge.models.runtime import Judge0Language
+from judge.utils.authoring import validate_contest_duration, validate_organization_code, validate_problem_time_limit
 from judge.utils.subscription import newsletter_id
 from judge.widgets import AceWidget, HeavySelect2MultipleWidget, HeavySelect2Widget, MartorWidget, \
     Select2MultipleWidget, Select2Widget
@@ -153,12 +153,7 @@ class LanguageLimitForm(ModelForm):
         super(LanguageLimitForm, self).__init__(*args, **kwargs)
 
     def clean_time_limit(self):
-        has_high_perm = self.user and self.user.has_perm('judge.high_problem_timelimit')
-        timelimit = self.cleaned_data['time_limit']
-        if timelimit and timelimit > settings.VNOJ_PROBLEM_TIMELIMIT_LIMIT and not has_high_perm:
-            raise forms.ValidationError(_('You cannot set time limit higher than %d seconds')
-                                        % settings.VNOJ_PROBLEM_TIMELIMIT_LIMIT,
-                                        'problem_timelimit_too_long')
+        validate_problem_time_limit(self.user, self.cleaned_data['time_limit'])
         return self.cleaned_data['time_limit']
 
     class Meta:
@@ -207,10 +202,7 @@ class ProblemEditForm(ModelForm):
         if self.org_pk is None:
             return code
         org = Organization.objects.get(pk=self.org_pk)
-        prefix = ''.join(x for x in org.slug.lower() if x.isalnum()) + '_'
-        if not code.startswith(prefix):
-            raise forms.ValidationError(_('Problem id code must starts with `%s`') % (prefix, ),
-                                        'problem_id_invalid_prefix')
+        validate_organization_code(code, org)
         return code
 
     def clean_statement_file(self):
@@ -227,12 +219,7 @@ class ProblemEditForm(ModelForm):
         return content
 
     def clean_time_limit(self):
-        has_high_perm = self.user and self.user.has_perm('judge.high_problem_timelimit')
-        timelimit = self.cleaned_data['time_limit']
-        if timelimit and timelimit > settings.VNOJ_PROBLEM_TIMELIMIT_LIMIT and not has_high_perm:
-            raise forms.ValidationError(_('You cannot set time limit higher than %d seconds')
-                                        % settings.VNOJ_PROBLEM_TIMELIMIT_LIMIT,
-                                        'problem_timelimit_too_long')
+        validate_problem_time_limit(self.user, self.cleaned_data['time_limit'])
         return self.cleaned_data['time_limit']
 
     class Meta:
@@ -378,13 +365,14 @@ class ContestDownloadDataForm(Form):
             return ()
         return self.cleaned_data['submission_result']
 
+
 class ProblemCustomTestForm(ModelForm):
     source = CharField(max_length=65536, required=False, widget=AceWidget(theme='twilight', no_ace_media=True))
     input = forms.CharField(
-        widget=DivTextarea(editable=True, attrs={"class": "customtest info-data", "style": "padding:8px;"}),
-        required=False
+        widget=DivTextarea(editable=True, attrs={'class': 'customtest info-data', 'style': 'padding:8px;'}),
+        required=False,
     )
-    
+
     def check_submission(self):
         source = self.cleaned_data.get('source', '')
 
@@ -395,7 +383,7 @@ class ProblemCustomTestForm(ModelForm):
         cleaned_data = super(ProblemCustomTestForm, self).clean()
         self.check_submission()
         return cleaned_data
-    
+
     def __init__(self, *args, judge_choices=(), **kwargs):
         super(ProblemCustomTestForm, self).__init__(*args, **kwargs)
         self.fields['language'].empty_label = None
@@ -902,12 +890,7 @@ class ContestForm(ModelForm):
         start_time = cleaned_data.get('start_time')
         end_time = cleaned_data.get('end_time')
 
-        has_long_perm = self.user and self.user.has_perm('judge.long_contest_duration')
-        if end_time and start_time and \
-           (end_time - start_time).days > settings.VNOJ_CONTEST_DURATION_LIMIT and not has_long_perm:
-            raise forms.ValidationError(_('Contest duration cannot be longer than %d days')
-                                        % settings.VNOJ_CONTEST_DURATION_LIMIT,
-                                        'contest_duration_too_long')
+        validate_contest_duration(self.user, start_time, end_time)
         return cleaned_data
 
     def clean_key(self):
@@ -915,10 +898,7 @@ class ContestForm(ModelForm):
         if self.org_pk is None:
             return key
         org = Organization.objects.get(pk=self.org_pk)
-        prefix = ''.join(x for x in org.slug.lower() if x.isalnum()) + '_'
-        if not key.startswith(prefix):
-            raise forms.ValidationError(_('Contest id must starts with `%s`') % (prefix, ),
-                                        'contest_id_invalid_prefix')
+        validate_organization_code(key, org, contest=True)
         return key
 
     class Meta:
