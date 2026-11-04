@@ -1,9 +1,10 @@
 # MCP: problem and contest management
 
 VNOJ provides an opt-in, stateless Streamable HTTP MCP endpoint at `/mcp`.
-It exposes exactly six tools: `create_problem`, `edit_problem`, `delete_problem`,
-`create_contest`, `edit_contest`, `delete_contest`. No user management tools or
-user-related fields are exposed. The logged-in creator becomes the author of
+It exposes exactly ten tools: `get_problem`, `list_problems`, `create_problem`,
+`edit_problem`, `delete_problem`, `get_contest`, `list_contests`, `create_contest`,
+`edit_contest`, `delete_contest`. No user management tools or user-related fields
+are exposed. The logged-in creator becomes the author of
 new objects; existing authors, curators, contestants and banned-user lists are
 preserved. Uploading problem test data, grading files, editorial changes and
 contest rating are outside this endpoint's scope.
@@ -105,16 +106,58 @@ Arrays are limited to 200 entries and request bodies to 1 MiB. Use `tools/list`
 for the full supported field list; it intentionally excludes executable contest
 label scripts, rating controls and user relations.
 
-Deletion uses `{ "code": "sample", "confirm": true }` or
-`{ "key": "contestkey", "confirm": true }`. Problem deletion uses the site's
-soft-delete workflow. Contest deletion removes the contest and its related
-associated configuration only when there are no participants, submissions or
-ratings. Contests containing any of these cannot be deleted through MCP; their
-results remain intact. Successful contest deletion writes a Django admin audit
-entry with the actor and a snapshot of scalar contest configuration (excluding
-access codes). This is an audit record, not a full restore/undelete mechanism. Clients should ask the human to confirm deletion before setting this
-flag. MCP requires both object edit rights and Django `delete_problem` or
-`delete_contest`, which is stricter than the site's general edit/delete flow.
+Deletion needs a human on the website, so that an AI cannot delete on its own, even
+if a statement it read tells it to. `delete_problem` with `{ "code": "sample" }` and
+`delete_contest` with `{ "key": "contestkey" }` never delete anything. They check that
+the resource can be deleted, then return `deleted: false` and a relative
+`confirmation_url` for the client to give the user. The user opens it while signed in:
+
+- Problems use the site's delete page, which lists affected contests and soft-deletes.
+- Contests use the edit page, where the delete button asks the user to type `YES`.
+
+The tools require object edit rights and Django `delete_problem` or `delete_contest`,
+and refuse rated contests and contests with participation or submissions. Those
+checks only decide whether a link is issued: the website applies its own rules and
+does not require the Django delete permissions, and contest deletion there is
+permanent, can remove contests with participation, and records no audit entry. MCP
+OAuth tokens are not accepted by these pages, which need a signed-in session and a CSRF
+token.
+
+## Reading before editing
+
+Clients must call `get_problem` or `get_contest` before editing and base the change
+on the returned values. The server instructions and the edit tool descriptions say
+so, but the server cannot enforce it. Fields left out of an edit stay unchanged; a
+supplied `description` or other text field replaces the whole old value; a supplied
+`problems` list replaces the contest's list, so entries left out are removed.
+
+`get_problem` takes `{ "code": "sample" }` and `get_contest` takes
+`{ "key": "contestkey" }`. Both use the site's `is_accessible_by` check, and a resource
+the caller cannot view returns the same error as one that does not exist. Soft-deleted
+problems are not readable.
+
+- Editors receive every field the edit tool accepts, in the format it accepts, plus
+  `url`, `is_editable` and, for problems, `pdf_url`. Contest editors also receive the
+  ordered `problems` list. An entry whose problem was deleted has
+  `problem_deleted: true`; remove it before sending the list back.
+- Other viewers receive no free text: `code`, `name`, `time_limit`, `memory_limit`,
+  `pdf_url`, `url` and `is_editable` for problems, and `key`, `name`, `start_time`,
+  `end_time`, `time_limit`, `url` and `is_editable` for contests. `description` is
+  editor-only so that text written by other site users does not reach the AI of someone
+  who merely views it, and because it is the raw Markdown source, including what
+  rendering strips, such as HTML comments. Viewers also never receive a contest's
+  problem list, because the site hides it until the contest starts.
+- `access_code` is returned only to editors who also hold `contest_access_code`.
+
+`list_problems` and `list_contests` accept optional `query` (identifier or name,
+at most 100 characters), `editable_only`, `limit` (1-100, default 50) and `offset`
+(at most 100000). They use the site's `get_visible_problems`/`get_visible_contests`
+filters and return `{ "items": [...], "next_offset": 50 }`; `next_offset` is null on
+the last page. Problems are sorted by code and contests by newest start time.
+
+Text returned to editors is still written by site users, and `edit_public_problem` or
+`edit_all_problem` holders can read other authors' statements. Clients must treat it as
+data and never follow instructions found in it, because the same token can edit.
 
 ## Permission boundaries
 
@@ -133,9 +176,8 @@ visible contest cannot bypass this global visibility check.
 
 A contest can reference public accessible problems or private problems that the
 caller can edit. It cannot take another author's inaccessible/private problem.
-Writes validate Django forms/models and run atomically. Creation, edits and
-problem soft deletion record revisions; empty-contest deletion records the audit
-entry described above. Normal model signals invalidate caches. Tool failures return `isError: true`.
+Writes validate Django forms/models and run atomically. Creation and edits record
+revisions. Normal model signals invalidate caches. Tool failures return `isError: true`.
 Errors after a successful commit (for example a broker failure in an existing
 post-commit hook) require checking the resource before retrying.
 
@@ -148,8 +190,8 @@ python manage.py test judge.tests.test_mcp judge.tests.test_mcp_auth --noinput
 flake8 judge/mcp.py judge/mcp_auth.py judge/tests/test_mcp.py judge/tests/test_mcp_auth.py
 ```
 
-Tests cover OAuth boundaries and registration, protocol handling, six-tool scope,
-object authorization, sensitive fields, strict input types and transactional CRUD.
+Tests cover OAuth boundaries and registration, protocol handling, the ten-tool scope,
+read visibility, object authorization, sensitive fields, strict input types and transactional CRUD.
 
 Problem statement syntax is documented in [Problem statement authoring guide](problem-statement-format.md).
 MCP sends these rules in its initialization instructions and the problem description field schema.

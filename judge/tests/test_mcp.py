@@ -1,12 +1,13 @@
 import json
+from datetime import timedelta
 from unittest.mock import patch
 
-from django.contrib.admin.models import DELETION, LogEntry
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
-from judge.mcp import TOOLS, call_tool
+from judge.mcp import PROBLEM_FIELDS, TOOLS, call_tool
 from judge.models import Contest, ContestProblem, ContestSubmission, Language, Problem, Submission
 from judge.models.tests.util import create_contest, create_contest_participation, create_organization, create_problem, \
     create_problem_group, create_problem_type, create_user
@@ -34,9 +35,10 @@ class MCPToolsTests(TestCase):
         fields.update(kwargs)
         return fields
 
-    def test_only_six_tools_and_no_user_fields(self):
+    def test_tool_set_and_no_user_fields(self):
         self.assertEqual(set(TOOLS), {'create_problem', 'edit_problem', 'delete_problem',
-                                      'create_contest', 'edit_contest', 'delete_contest'})
+                                      'create_contest', 'edit_contest', 'delete_contest',
+                                      'get_problem', 'list_problems', 'get_contest', 'list_contests'})
         for tool in TOOLS.values():
             fields = tool['inputSchema']['properties'].get('fields', {}).get('properties', {})
             for name in ('authors', 'curators', 'testers', 'banned_users', 'private_contestants', 'is_staff'):
@@ -51,22 +53,20 @@ class MCPToolsTests(TestCase):
         problem.refresh_from_db()
         self.assertEqual(problem.name, 'Changed')
         self.assertEqual(problem.time_limit, 1)
-        call_tool(self.owner, 'delete_problem', {'code': problem.code, 'confirm': True})
-        self.assertIsNotNone(Problem.objects.get(pk=problem.pk).deleted_at)
+        result = call_tool(self.owner, 'delete_problem', {'code': problem.code})
+        self.assertEqual(result, {'code': problem.code, 'deleted': False,
+                                  'confirmation_url': reverse('problem_delete', args=[problem.code])})
+        self.assertIsNone(Problem.objects.get(pk=problem.pk).deleted_at)
 
-    def test_object_permissions_and_delete_confirmation(self):
+    def test_object_permissions(self):
         for tool, args in (
             ('edit_problem', {'code': self.problem.code, 'fields': {'name': 'Stolen'}}),
-            ('delete_problem', {'code': self.problem.code, 'confirm': True}),
+            ('delete_problem', {'code': self.problem.code}),
             ('edit_contest', {'key': self.contest.key, 'fields': {'name': 'Stolen'}}),
-            ('delete_contest', {'key': self.contest.key, 'confirm': True}),
+            ('delete_contest', {'key': self.contest.key}),
         ):
             with self.subTest(tool=tool), self.assertRaises(PermissionDenied):
                 call_tool(self.other, tool, args)
-        for confirm in (None, False, 'true', 1):
-            with self.subTest(confirm=confirm), self.assertRaises(ValidationError):
-                call_tool(self.owner, 'delete_problem', {'code': self.problem.code, 'confirm': confirm})
-        self.assertIsNone(Problem.objects.get(pk=self.problem.pk).deleted_at)
 
     def test_sensitive_fields_and_mass_assignment(self):
         for fields in ({'is_public': True}, {'is_full_markup': True}, {'is_manually_managed': True},
@@ -104,8 +104,10 @@ class MCPToolsTests(TestCase):
                 'key': contest.key, 'fields': {'end_time': '2026-01-01T00:00:00Z'},
             })
         self.assertEqual(Contest.objects.get(pk=contest.pk).name, 'Changed')
-        call_tool(self.owner, 'delete_contest', {'key': contest.key, 'confirm': True})
-        self.assertFalse(Contest.objects.filter(pk=contest.pk).exists())
+        result = call_tool(self.owner, 'delete_contest', {'key': contest.key})
+        self.assertEqual(result, {'key': contest.key, 'deleted': False,
+                                  'confirmation_url': reverse('contest_edit', args=[contest.key]) + '#delete-contest'})
+        self.assertTrue(Contest.objects.filter(pk=contest.pk).exists())
 
     def test_private_problem_cannot_be_taken_into_other_contest(self):
         # Both users can edit their own contest but the other user cannot take the owner's private problem.
@@ -176,7 +178,7 @@ class MCPToolsTests(TestCase):
         user = create_user('editoronly', user_permissions=('edit_own_problem',))
         problem = create_problem('editoronly', authors=('editoronly',))
         with self.assertRaises(PermissionDenied):
-            call_tool(user, 'delete_problem', {'code': problem.code, 'confirm': True})
+            call_tool(user, 'delete_problem', {'code': problem.code})
 
     def test_invalid_array_elements_are_validation_errors(self):
         with self.assertRaises(ValidationError):
@@ -217,16 +219,33 @@ class MCPToolsTests(TestCase):
         with self.assertRaises(PermissionDenied):
             call_tool(self.owner, 'edit_contest', {'key': self.contest.key, 'fields': {'disallow_virtual': True}})
 
-    def test_deletion_preserves_participation_and_records_audit(self):
+    def test_contest_with_results_gets_no_confirmation_link(self):
         create_contest_participation(self.contest, self.owner.profile)
         with self.assertRaises(PermissionDenied):
-            call_tool(self.owner, 'delete_contest', {'key': self.contest.key, 'confirm': True})
+            call_tool(self.owner, 'delete_contest', {'key': self.contest.key})
         self.assertTrue(Contest.objects.filter(pk=self.contest.pk).exists())
-        empty = create_contest('emptydelete', authors=('owner',))
-        call_tool(self.owner, 'delete_contest', {'key': empty.key, 'confirm': True})
-        entry = LogEntry.objects.get(action_flag=DELETION, object_id=str(empty.pk))
-        self.assertEqual(entry.user_id, self.owner.pk)
-        self.assertEqual(json.loads(entry.change_message)['source'], 'MCP')
+
+    def test_delete_tools_do_not_write_and_no_longer_take_confirm(self):
+        for name in ('delete_problem', 'delete_contest'):
+            annotations = TOOLS[name]['annotations']
+            self.assertTrue(annotations['readOnlyHint'])
+            self.assertFalse(annotations['destructiveHint'])
+            self.assertIn('never deletes', TOOLS[name]['description'])
+        with self.assertRaises(ValidationError):
+            call_tool(self.owner, 'delete_problem', {'code': self.problem.code, 'confirm': True})
+        self.assertIsNone(Problem.objects.get(pk=self.problem.pk).deleted_at)
+
+    def test_site_user_can_finish_deletion_from_confirmation_links(self):
+        self.client.force_login(self.owner)
+        url = call_tool(self.owner, 'delete_problem', {'code': self.problem.code})['confirmation_url']
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertIsNone(Problem.objects.get(pk=self.problem.pk).deleted_at)
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertIsNotNone(Problem.objects.get(pk=self.problem.pk).deleted_at)
+        url = call_tool(self.owner, 'delete_contest', {'key': self.contest.key})['confirmation_url']
+        page, fragment = url.split('#')
+        self.assertContains(self.client.get(page), 'id="%s"' % fragment)
+        self.assertTrue(Contest.objects.filter(pk=self.contest.pk).exists())
 
     def test_new_objects_have_date_and_contest_hook(self):
         result = call_tool(self.owner, 'create_problem', {'fields': self.problem_fields()})
@@ -237,6 +256,213 @@ class MCPToolsTests(TestCase):
                 'end_time': '2027-01-02T00:00:00Z',
             }})
         task.s.assert_called_once_with('notifycontest')
+
+
+class MCPReadToolsTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = create_user('owner', user_permissions=('edit_own_problem', 'edit_own_contest'))
+        cls.viewer = create_user('viewer')
+        cls.tester = create_user('tester')
+        cls.keeper = create_user('keeper', user_permissions=('edit_own_contest', 'contest_access_code'))
+        cls.group = create_problem_group('readgroup')
+        cls.kind = create_problem_type('readtype')
+        cls.language = Language.objects.create(key='READ', name='READ', common_name='READ', ace='text')
+        cls.private = create_problem(
+            'read_private', authors=('owner',), testers=('tester',), group=cls.group, types=('readtype',),
+            allowed_languages=('READ',), description='Secret statement', source='Secret source')
+        cls.public = create_problem('read_public', is_public=True, group=cls.group, description='Open statement',
+                                    source='Open source', name='Public 100% problem')
+        cls.contest = create_contest(
+            'read_hidden', authors=('owner', 'keeper'), testers=('tester',), is_visible=False,
+            description='Hidden', terms='Rules', access_code='sekret', time_limit=timedelta(hours=1, minutes=30),
+            problems=())
+        ContestProblem.objects.create(contest=cls.contest, problem=cls.public, points=7, order=2, max_submissions=3)
+        ContestProblem.objects.create(contest=cls.contest, problem=cls.private, points=9, order=1, partial=False)
+        cls.open_contest = create_contest('read_open', is_visible=True, description='Open', terms='Rules',
+                                          access_code='sekret2')
+        ContestProblem.objects.create(contest=cls.open_contest, problem=cls.private, points=1, order=1)
+
+    def assert_hidden(self, user, tool, arguments):
+        with self.assertRaises(PermissionDenied) as caught:
+            call_tool(user, tool, arguments)
+        self.assertEqual(str(caught.exception), 'Resource does not exist or is not visible to you.')
+
+    def test_read_tools_are_marked_read_only_and_edit_tools_require_reading_first(self):
+        for name in ('get_problem', 'list_problems', 'get_contest', 'list_contests'):
+            self.assertTrue(TOOLS[name]['annotations']['readOnlyHint'])
+            self.assertFalse(TOOLS[name]['annotations']['destructiveHint'])
+        for name in ('edit_problem', 'edit_contest'):
+            self.assertFalse(TOOLS[name]['annotations']['readOnlyHint'])
+            self.assertIn('Before editing, call get_problem or get_contest', TOOLS[name]['description'])
+
+    def test_editor_reads_every_editable_problem_field(self):
+        result = call_tool(self.owner, 'get_problem', {'code': self.private.code})
+        self.assertEqual(result['description'], 'Secret statement')
+        self.assertEqual(result['source'], 'Secret source')
+        self.assertEqual(result['group'], self.group.pk)
+        self.assertEqual(result['types'], [self.kind.pk])
+        self.assertEqual(result['allowed_languages'], [self.language.pk])
+        self.assertIsNone(result['organization'])
+        self.assertTrue(result['is_editable'])
+        self.assertEqual(result['url'], self.private.get_absolute_url())
+        self.assertEqual(set(result), set(PROBLEM_FIELDS) | {'pdf_url', 'url', 'is_editable'})
+        json.dumps(result)
+
+    def test_viewer_gets_no_free_text(self):
+        result = call_tool(self.viewer, 'get_problem', {'code': self.public.code})
+        self.assertEqual(set(result), {'code', 'name', 'time_limit', 'memory_limit', 'pdf_url', 'url', 'is_editable'})
+        self.assertFalse(result['is_editable'])
+
+    def test_private_problem_is_indistinguishable_from_missing_one(self):
+        self.assert_hidden(self.viewer, 'get_problem', {'code': self.private.code})
+        self.assert_hidden(self.viewer, 'get_problem', {'code': 'no_such_problem'})
+
+    def test_tester_can_read_private_problem_but_not_editable_fields(self):
+        result = call_tool(self.tester, 'get_problem', {'code': self.private.code})
+        self.assertEqual(result['code'], self.private.code)
+        self.assertNotIn('description', result)
+        self.assertNotIn('source', result)
+
+    def test_organization_private_problem_needs_membership(self):
+        organization = create_organization('readschool')
+        problem = create_problem('readschool_a', is_public=True, is_organization_private=True,
+                                 organization=organization, group=self.group)
+        self.assert_hidden(self.viewer, 'get_problem', {'code': problem.code})
+        self.viewer.profile.organizations.add(organization)
+        self.assertEqual(call_tool(self.viewer, 'get_problem', {'code': problem.code})['code'], problem.code)
+        self.viewer.profile.organizations.remove(organization)
+
+    def test_deleted_problem_is_hidden_from_its_editor(self):
+        problem = create_problem('read_gone', authors=('owner',), group=self.group)
+        problem.mark_as_deleted()
+        self.assert_hidden(self.owner, 'get_problem', {'code': problem.code})
+        listed = call_tool(self.owner, 'list_problems', {'editable_only': True})['items']
+        self.assertNotIn(problem.code, [item['code'] for item in listed])
+
+    def test_private_contest_problem_readable_only_during_participation(self):
+        participation = create_contest_participation(self.open_contest, self.viewer.profile)
+        profile = self.viewer.profile
+        profile.current_contest = participation
+        profile.save()
+        self.assertEqual(call_tool(self.viewer, 'get_problem', {'code': self.private.code})['code'],
+                         self.private.code)
+        Contest.objects.filter(pk=self.open_contest.pk).update(end_time=timezone.now() - timedelta(minutes=1))
+        viewer = type(self.viewer).objects.get(pk=self.viewer.pk)
+        self.assert_hidden(viewer, 'get_problem', {'code': self.private.code})
+        profile.refresh_from_db()
+        self.assertIsNone(profile.current_contest)
+
+    def test_editor_reads_contest_with_ordered_problems(self):
+        result = call_tool(self.owner, 'get_contest', {'key': self.contest.key})
+        self.assertEqual(result['terms'], 'Rules')
+        self.assertEqual(result['time_limit'], '01:30:00')
+        self.assertEqual(result['problems'], [
+            {'code': 'read_private', 'points': 9, 'partial': False, 'is_pretested': False, 'max_submissions': None},
+            {'code': 'read_public', 'points': 7, 'partial': True, 'is_pretested': False, 'max_submissions': 3},
+        ])
+        self.assertTrue(result['is_editable'])
+        json.dumps(result)
+
+    def test_access_code_needs_its_own_permission(self):
+        self.assertNotIn('access_code', call_tool(self.owner, 'get_contest', {'key': self.contest.key}))
+        self.assertEqual(call_tool(self.keeper, 'get_contest', {'key': self.contest.key})['access_code'], 'sekret')
+
+    def test_contest_viewer_gets_no_free_text_problems_or_access_code(self):
+        result = call_tool(self.viewer, 'get_contest', {'key': self.open_contest.key})
+        self.assertEqual(set(result), {'key', 'name', 'start_time', 'end_time', 'time_limit', 'url', 'is_editable'})
+        self.assertFalse(result['is_editable'])
+        result = call_tool(self.tester, 'get_contest', {'key': self.contest.key})
+        self.assertNotIn('description', result)
+        self.assertNotIn('problems', result)
+        self.assertNotIn('access_code', result)
+
+    def test_hidden_and_private_contests_are_indistinguishable_from_missing_ones(self):
+        private = create_contest('read_private_c', is_visible=True, is_private=True)
+        for key in (self.contest.key, private.key, 'no_such_contest'):
+            self.assert_hidden(self.viewer, 'get_contest', {'key': key})
+        organization = create_organization('readorg')
+        scoped = create_contest('read_org_c', is_visible=True, is_organization_private=True, organization=organization)
+        self.assert_hidden(self.viewer, 'get_contest', {'key': scoped.key})
+
+    def test_deleted_problem_in_contest_is_flagged(self):
+        problem = create_problem('read_dropped', group=self.group)
+        ContestProblem.objects.create(contest=self.contest, problem=problem, points=1, order=3)
+        problem.mark_as_deleted()
+        entries = call_tool(self.owner, 'get_contest', {'key': self.contest.key})['problems']
+        self.assertEqual(entries[-1]['problem_deleted'], True)
+        self.assertNotIn('problem_deleted', entries[0])
+
+    def test_read_values_can_be_sent_back_to_edit_tools(self):
+        problem = call_tool(self.owner, 'get_problem', {'code': self.private.code})
+        restricted = ('code', 'organization', 'is_public', 'is_full_markup', 'is_manually_managed',
+                      'is_organization_private')
+        fields = {key: problem[key] for key in PROBLEM_FIELDS if key not in restricted}
+        call_tool(self.owner, 'edit_problem', {'code': self.private.code, 'fields': fields})
+        start = timezone.now().replace(microsecond=0)
+        Contest.objects.filter(pk=self.contest.pk).update(start_time=start, end_time=start + timedelta(days=2))
+        contest = call_tool(self.owner, 'get_contest', {'key': self.contest.key})
+        fields = {key: contest[key] for key in ('name', 'description', 'terms', 'start_time', 'end_time',
+                                                'registration_start', 'registration_end', 'time_limit')}
+        call_tool(self.owner, 'edit_contest', {'key': self.contest.key, 'fields': fields})
+        fresh = Contest.objects.get(pk=self.contest.pk)
+        self.assertEqual(fresh.start_time, start)
+        self.assertEqual(fresh.time_limit, timedelta(hours=1, minutes=30))
+
+    def test_list_problems_shows_only_visible_ones(self):
+        codes = [item['code'] for item in call_tool(self.viewer, 'list_problems', {})['items']]
+        self.assertIn(self.public.code, codes)
+        self.assertNotIn(self.private.code, codes)
+        item = call_tool(self.tester, 'list_problems', {'query': 'read_private'})['items'][0]
+        self.assertEqual(item, {'code': 'read_private', 'name': 'read_private', 'is_public': False,
+                                'url': self.private.get_absolute_url()})
+
+    def test_list_contests_shows_only_visible_ones(self):
+        keys = [item['key'] for item in call_tool(self.viewer, 'list_contests', {})['items']]
+        self.assertEqual(keys, [self.open_contest.key])
+        keys = [item['key'] for item in call_tool(self.owner, 'list_contests', {})['items']]
+        self.assertCountEqual(keys, [self.contest.key, self.open_contest.key])
+
+    def test_contest_with_several_scoreboard_viewers_is_listed_once(self):
+        contest = create_contest('read_shared', is_visible=True, is_private=True,
+                                 view_contest_scoreboard=('viewer', 'tester', 'owner'))
+        keys = [item['key'] for item in call_tool(self.viewer, 'list_contests', {'query': 'read_shared'})['items']]
+        self.assertEqual(keys, [contest.key])
+
+    def test_editable_only_filter(self):
+        codes = [item['code'] for item in call_tool(self.owner, 'list_problems', {'editable_only': True})['items']]
+        self.assertEqual(codes, [self.private.code])
+        keys = [item['key'] for item in call_tool(self.owner, 'list_contests', {'editable_only': True})['items']]
+        self.assertEqual(keys, [self.contest.key])
+        self.assertEqual(call_tool(self.viewer, 'list_problems', {'editable_only': True})['items'], [])
+        self.assertEqual(call_tool(self.viewer, 'list_contests', {'editable_only': True})['items'], [])
+
+    def test_search_treats_wildcards_literally(self):
+        items = call_tool(self.viewer, 'list_problems', {'query': '100%'})['items']
+        self.assertEqual([item['code'] for item in items], [self.public.code])
+        self.assertEqual(call_tool(self.viewer, 'list_problems', {'query': '%'})['items'], items)
+        self.assertEqual(call_tool(self.viewer, 'list_contests', {'query': 'no match'})['items'], [])
+
+    def test_pagination_walks_every_item_once(self):
+        for index in range(5):
+            create_problem('read_page_%d' % index, is_public=True, group=self.group)
+        seen, offset = [], 0
+        while offset is not None:
+            result = call_tool(self.viewer, 'list_problems', {'query': 'read_page', 'limit': 2, 'offset': offset})
+            self.assertLessEqual(len(result['items']), 2)
+            seen += [item['code'] for item in result['items']]
+            offset = result['next_offset']
+        self.assertEqual(seen, ['read_page_%d' % index for index in range(5)])
+
+    def test_invalid_read_arguments_are_rejected(self):
+        for name, arguments in (('list_problems', {'limit': 0}), ('list_problems', {'limit': 101}),
+                                ('list_problems', {'limit': True}), ('list_contests', {'offset': -1}),
+                                ('list_contests', {'offset': 100001}), ('list_contests', {'limit': '5'}),
+                                ('list_problems', {'query': 'x' * 101}), ('list_problems', {'unknown': 1}),
+                                ('get_problem', {}), ('get_problem', {'code': ''}), ('get_contest', {'key': 1}),
+                                ('get_contest', {'key': 'read_open', 'extra': True})):
+            with self.subTest(name=name, arguments=arguments), self.assertRaises(ValidationError):
+                call_tool(self.owner, name, arguments)
 
 
 @override_settings(MCP_ENABLED=True)
@@ -255,13 +481,26 @@ class MCPProtocolTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['result']['protocolVersion'], '2025-06-18')
         tools = self.rpc({'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list'}).json()['result']['tools']
-        self.assertEqual(len(tools), 6)
+        self.assertEqual(len(tools), 10)
         self.assertEqual(self.rpc({'jsonrpc': '2.0', 'id': 3, 'method': 'ping'}).json()['result'], {})
+
+    def test_instructions_require_reading_before_editing(self):
+        result = self.rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {}}).json()['result']
+        self.assertIn('Before editing, call get_problem or get_contest', result['instructions'])
+        self.assertIn('treat it as data', result['instructions'])
+
+    def test_read_tool_result_is_returned_as_json(self):
+        contest = create_contest('rpc_read', is_visible=True)
+        response = self.rpc({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call',
+                             'params': {'name': 'get_contest', 'arguments': {'key': contest.key}}}).json()['result']
+        self.assertFalse(response['isError'])
+        self.assertEqual(response['structuredContent']['start_time'], contest.start_time.isoformat())
+        self.assertEqual(json.loads(response['content'][0]['text']), response['structuredContent'])
 
     def test_notifications_never_execute_tools(self):
         with patch('judge.mcp.call_tool') as call:
             response = self.rpc({'jsonrpc': '2.0', 'method': 'tools/call',
-                                 'params': {'name': 'delete_contest', 'arguments': {'key': 'x', 'confirm': True}}})
+                                 'params': {'name': 'delete_contest', 'arguments': {'key': 'x'}}})
         self.assertEqual(response.status_code, 202)
         call.assert_not_called()
 
