@@ -529,7 +529,7 @@
         </table>
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1em;">
             {% if request.resolver_match.url_name == 'contest_edit' %}
-                <button type="submit" form="delete-contest-form" class="button btn-danger">{{ _('Delete contest') }}</button>
+                <button id="delete-contest" type="submit" form="delete-contest-form" class="button btn-danger">{{ _('Delete contest') }}</button>
             {% endif %}
             <button class="submit-bar" type="submit">
             {% if request.resolver_match.url_name == 'contest_edit' %}

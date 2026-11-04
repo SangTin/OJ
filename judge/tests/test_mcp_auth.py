@@ -6,15 +6,17 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
+from django.contrib.auth.models import Permission
 from django.core.cache import cache
 from django.test import RequestFactory, TestCase, override_settings
-from django.urls import resolve
+from django.urls import resolve, reverse
 from django.utils import timezone
 from oauth2_provider.models import get_access_token_model, get_application_model, get_grant_model, \
     get_refresh_token_model
 
 from judge.mcp_auth import MCPOAuthValidator, authenticate, register
-from judge.models.tests.util import create_user
+from judge.models import Contest, Problem
+from judge.models.tests.util import create_contest, create_problem, create_user
 
 
 @override_settings(MCP_ENABLED=True, MCP_RESOURCE_URL='http://testserver/mcp', MCP_ALLOW_LOOPBACK_REDIRECTS=False)
@@ -134,7 +136,7 @@ class MCPAuthTests(TestCase):
             'jsonrpc': '2.0', 'id': 1, 'method': 'tools/list',
         }), content_type='application/json', HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()['result']['tools']), 6)
+        self.assertEqual(len(response.json()['result']['tools']), 10)
         # Authorization codes are single-use.
         replay = self.client.post('/o/token/', {
             'grant_type': 'authorization_code', 'client_id': self.application.client_id,
@@ -383,3 +385,14 @@ class MCPAuthTests(TestCase):
             self.assertTrue(resolve(path).func.short_circuit_middleware, path)
         self.assertTrue(resolve('/mcp').func.csrf_exempt)
         self.assertTrue(resolve('/mcp/register').func.csrf_exempt)
+
+    def test_mcp_token_cannot_finish_deletion_on_the_website(self):
+        self.user.user_permissions.add(*Permission.objects.filter(
+            codename__in=('edit_own_problem', 'edit_own_contest', 'delete_problem', 'delete_contest')))
+        problem = create_problem('tokendelete', authors=('mcpowner',))
+        contest = create_contest('tokendelete', authors=('mcpowner',))
+        for url in (reverse('problem_delete', args=[problem.code]), reverse('contest_delete', args=[contest.key])):
+            with self.subTest(url=url):
+                self.assertNotEqual(self.client.post(url, HTTP_AUTHORIZATION='Bearer mcp-test-token').status_code, 200)
+        self.assertIsNone(Problem.objects.get(pk=problem.pk).deleted_at)
+        self.assertTrue(Contest.objects.filter(pk=contest.pk).exists())
